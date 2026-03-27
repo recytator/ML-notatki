@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machine Learning - Interaktywny Kurs</title>
+    <meta name="description" content="Interaktywny kurs Machine Learning. Regresja liniowa, gradient descent i wiele wiecej. Teoria, wizualizacje i quizy.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        deep: '#0f172a',
+                        card: '#1e293b',
+                        accent: '#38bdf8',
+                        purple: '#818cf8',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+        /* Animated grid background */
+        .grid-bg {
+            background-image:
+                linear-gradient(rgba(56,189,248,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(56,189,248,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+        /* Glassmorphism card */
+        .glass-card {
+            background: rgba(30,41,59,0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(56,189,248,0.1);
+            transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+        }
+        .glass-card:hover {
+            border-color: rgba(56,189,248,0.4);
+            box-shadow: 0 0 30px rgba(56,189,248,0.08), 0 8px 32px rgba(0,0,0,0.3);
+            transform: translateY(-6px);
+        }
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #38bdf8 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 4s ease-in-out infinite;
+        }
+        @keyframes shimmer {
+            0%, 100% { background-position: 0% center; }
+            50% { background-position: 200% center; }
+        }
+        /* Floating particles */
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float linear infinite;
+        }
+        @keyframes float {
+            0% { transform: translateY(0) scale(1); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) scale(0.5); opacity: 0; }
+        }
+        /* SVG neural net animation */
+        .node-pulse {
+            animation: pulse 2.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { r: 6; opacity: 0.7; }
+            50% { r: 8; opacity: 1; }
+        }
+        .edge-flow {
+            stroke-dasharray: 8 4;
+            animation: dash 2s linear infinite;
+        }
+        @keyframes dash {
+            to { stroke-dashoffset: -24; }
+        }
+        /* Tag pill */
+        .tag {
+            background: rgba(56,189,248,0.1);
+            border: 1px solid rgba(56,189,248,0.2);
+            color: #38bdf8;
+            font-size: 0.7rem;
+            padding: 2px 10px;
+            border-radius: 9999px;
+            font-weight: 500;
+        }
+        .tag-purple {
+            background: rgba(129,140,248,0.1);
+            border-color: rgba(129,140,248,0.2);
+            color: #818cf8;
+        }
+        /* CTA button */
+        .cta-btn {
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .cta-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #818cf8, #38bdf8);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .cta-btn:hover::before { opacity: 1; }
+        .cta-btn:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(56,189,248,0.3); }
+        .cta-btn span { position: relative; z-index: 1; }
+        /* Info cards icons */
+        .info-icon {
+            width: 48px; height: 48px;
+            background: linear-gradient(135deg, rgba(56,189,248,0.15), rgba(129,140,248,0.15));
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem;
+        }
+        /* Navbar */
+        nav {
+            backdrop-filter: blur(16px);
+            background: rgba(15,23,42,0.85);
+            border-bottom: 1px solid rgba(56,189,248,0.08);
+        }
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="grid-bg min-h-screen">
+
+    <!-- Floating particles -->
+    <div id="particles" class="fixed inset-0 pointer-events-none z-0"></div>
+
+    <!-- Navbar -->
+    <nav class="fixed top-0 left-0 right-0 z-50 px-6 py-4">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-3 group">
+                <!-- Mini SVG logo -->
+                <svg width="32" height="32" viewBox="0 0 100 100" class="opacity-80 group-hover:opacity-100 transition-opacity">
+                    <circle cx="20" cy="30" r="5" fill="#38bdf8" opacity="0.8"/>
+                    <circle cx="20" cy="70" r="5" fill="#38bdf8" opacity="0.8"/>
+                    <circle cx="50" cy="20" r="5" fill="#818cf8" opacity="0.8"/>
+                    <circle cx="50" cy="50" r="5" fill="#818cf8" opacity="0.8"/>
+                    <circle cx="50" cy="80" r="5" fill="#818cf8" opacity="0.8"/>
+                    <circle cx="80" cy="50" r="5" fill="#38bdf8" opacity="0.8"/>
+                    <line x1="20" y1="30" x2="50" y2="20" stroke="#38bdf8" stroke-width="1" opacity="0.3"/>
+                    <line x1="20" y1="30" x2="50" y2="50" stroke="#38bdf8" stroke-width="1" opacity="0.3"/>
+                    <line x1="20" y1="30" x2="50" y2="80" stroke="#38bdf8" stroke-width="1" opacity="0.3"/>
+                    <line x1="20" y1="70" x2="50" y2="20" stroke="#818cf8" stroke-width="1" opacity="0.3"/>
+                    <line x1="20" y1="70" x2="50" y2="50" stroke="#818cf8" stroke-width="1" opacity="0.3"/>
+                    <line x1="20" y1="70" x2="50" y2="80" stroke="#818cf8" stroke-width="1" opacity="0.3"/>
+                    <line x1="50" y1="20" x2="80" y2="50" stroke="#38bdf8" stroke-width="1" opacity="0.3"/>
+                    <line x1="50" y1="50" x2="80" y2="50" stroke="#818cf8" stroke-width="1" opacity="0.3"/>
+                    <line x1="50" y1="80" x2="80" y2="50" stroke="#38bdf8" stroke-width="1" opacity="0.3"/>
+                </svg>
+                <span class="text-lg font-bold text-slate-200 group-hover:text-accent transition-colors">ML Portal</span>
+            </a>
+            <div class="hidden md:flex items-center gap-6 text-sm text-slate-400">
+                <a href="index.html" class="text-accent font-medium">Strona glowna</a>
+                <a href="lekcja1.html" class="hover:text-accent transition-colors">Lekcja 1</a>
+                <a href="lekcja2.html" class="hover:text-accent transition-colors">Lekcja 2</a>
+            </div>
+            <!-- Mobile menu button -->
+            <button id="menuBtn" class="md:hidden text-slate-400 hover:text-accent transition-colors">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 6h18M3 12h18M3 18h18"/>
+                </svg>
+            </button>
+        </div>
+        <!-- Mobile menu -->
+        <div id="mobileMenu" class="hidden md:hidden mt-4 pb-4 border-t border-slate-700/50 pt-4">
+            <div class="flex flex-col gap-3 text-sm text-slate-400">
+                <a href="index.html" class="text-accent font-medium">Strona glowna</a>
+                <a href="lekcja1.html" class="hover:text-accent transition-colors">Lekcja 1: Regresja Liniowa</a>
+                <a href="lekcja2.html" class="hover:text-accent transition-colors">Lekcja 2: Gradient Descent</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <main class="relative z-10">
+        <section class="min-h-screen flex flex-col items-center justify-center px-6 pt-20">
+            <!-- Animated Neural Network SVG Logo -->
+            <div class="mb-8 opacity-0 animate-[fadeIn_1s_ease_0.2s_forwards]">
+                <svg width="200" height="160" viewBox="0 0 200 160" id="heroSvg">
+                    <!-- Layer 1 (Input) -->
+                    <circle cx="30" cy="40" r="6" fill="#38bdf8" class="node-pulse" style="animation-delay:0s"/>
+                    <circle cx="30" cy="80" r="6" fill="#38bdf8" class="node-pulse" style="animation-delay:0.3s"/>
+                    <circle cx="30" cy="120" r="6" fill="#38bdf8" class="node-pulse" style="animation-delay:0.6s"/>
+                    <!-- Layer 2 (Hidden 1) -->
+                    <circle cx="80" cy="30" r="6" fill="#818cf8" class="node-pulse" style="animation-delay:0.2s"/>
+                    <circle cx="80" cy="60" r="6" fill="#818cf8" class="node-pulse" style="animation-delay:0.5s"/>
+                    <circle cx="80" cy="90" r="6" fill="#818cf8" class="node-pulse" style="animation-delay:0.8s"/>
+                    <circle cx="80" cy="120" r="6" fill="#818cf8" class="node-pulse" style="animation-delay:0.4s"/>
+                    <!-- Layer 3 (Hidden 2) -->
+                    <circle cx="130" cy="40" r="6" fill="#818cf8" class="node-pulse" style="animation-delay:0.1s"/>
+                    <circle cx="130" cy="75" r="6" fill="#818cf8" class="node-pulse" style="animation-delay:0.7s"/>
+                    <circle cx="130" cy="110" r="6" fill="#818cf8" class="node-pulse" style="animation-delay:0.3s"/>
+                    <!-- Layer 4 (Output) -->
+                    <circle cx="175" cy="60" r="6" fill="#38bdf8" class="node-pulse" style="animation-delay:0.6s"/>
+                    <circle cx="175" cy="100" r="6" fill="#38bdf8" class="node-pulse" style="animation-delay:0.9s"/>
+                    <!-- Edges: Layer 1 -> Layer 2 -->
+                    <line x1="36" y1="40" x2="74" y2="30" stroke="#38bdf8" stroke-width="1" opacity="0.25" class="edge-flow"/>
+                    <line x1="36" y1="40" x2="74" y2="60" stroke="#38bdf8" stroke-width="1" opacity="0.2" class="edge-flow" style="animation-delay:0.2s"/>
+                    <line x1="36" y1="40" x2="74" y2="90" stroke="#38bdf8" stroke-width="1" opacity="0.15" class="edge-flow" style="animation-delay:0.4s"/>
+                    <line x1="36" y1="40" x2="74" y2="120" stroke="#38bdf8" stroke-width="1" opacity="0.15" class="edge-flow" style="animation-delay:0.6s"/>
+                    <line x1="36" y1="80" x2="74" y2="30" stroke="#818cf8" stroke-width="1" opacity="0.2" class="edge-flow" style="animation-delay:0.1s"/>
+                    <line x1="36" y1="80" x2="74" y2="60" stroke="#818cf8" stroke-width="1" opacity="0.25" class="edge-flow" style="animation-delay:0.3s"/>
+                    <line x1="36" y1="80" x2="74" y2="90" stroke="#818cf8" stroke-width="1" opacity="0.2" class="edge-flow" style="animation-delay:0.5s"/>
+                    <line x1="36" y1="80" x2="74" y2="120" stroke="#818cf8" stroke-width="1" opacity="0.15" class="edge-flow" style="animation-delay:0.7s"/>
+                    <line x1="36" y1="120" x2="74" y2="30" stroke="#38bdf8" stroke-width="1" opacity="0.15" class="edge-flow" style="animation-delay:0.2s"/>
+                    <line x1="36" y1="120" x2="74" y2="60" stroke="#38bdf8" stroke-width="1" opacity="0.2" class="edge-flow" style="animation-delay:0.4s"/>
+                    <line x1="36" y1="120" x2="74" y2="90" stroke="#38bdf8" stroke-width="1" opacity="0.25" class="edge-flow" style="animation-delay:0.6s"/>
+                    <line x1="36" y1="120" x2="74" y2="120" stroke="#38bdf8" stroke-width="1" opacity="0.2" class="edge-flow" style="animation-delay:0.8s"/>
+                    <!-- Edges: Layer 2 -> Layer 3 -->
+                    <line x1="86" y1="30" x2="124" y2="40" stroke="#818cf8" stroke-width="1" opacity="0.25" class="edge-flow" style="animation-delay:0.1s"/>
+                    <line x1="86" y1="30" x2="124" y2="75" stroke="#818cf8" stroke-width="1" opacity="0.2" class="edge-flow" style="animation-delay:0.3s"/>
+                    <line x1="86" y1="30" x2="124" y2="110" stroke="#818cf8" stroke-width="1" opacity="0.15" class="edge-flow" style="animation-delay:0.5s"/>
+                    <line x1="86" y1="60" x2="124" y2="40" stroke="#38bdf8" stroke-width="1" opacity="0.2" class="edge-flow" style="animation-delay:0.2s"/>
+                    <line x1="86" y1="60" x2="124" y2="75" stroke="#38bdf8" stroke-width="1" opacity="0.25" class="edge-flow" style="animation-delay:0.4s"/>
+                    <line x1="86" y1="60" x2="124" y2="110" stroke="#38bdf8" stroke-width="1" opacity="0.2" class="edge-flow" style="animation-delay:0.6s"/>
+                    <line x1="86" y1="90" x2="124" y2="40" stroke="#818cf8" stroke-width="1" opacity="0.15" class="edge-flow" style="animation-delay:0.3s"/>
+                    <line x1="86" y1="90" x2="124" y2="75" stroke="#818cf8" stroke-width="1" opacity="0.2" class="edge-flow" style="animation-delay:0.5s"/>
+                    <line x1="86" y1="90" x2="124" y2="110" stroke="#818cf8" stroke-width="1" opacity="0.25" class="edge-flow" style="animation-delay:0.7s"/>
+                    <line x1="86" y1="120" x2="124" y2="40" stroke="#38bdf8" stroke-width="1" opacity="0.15" class="edge-flow" style="animation-delay:0.4s"/>
+                    <line x1="86" y1="120" x2="124" y2="75" stroke="#38bdf8" stroke-width="1" opacity="0.2" class="edge-flow" style="animation-delay:0.6s"/>
+                    <line x1="86" y1="120" x2="124" y2="110" stroke="#38bdf8" stroke-width="1" opacity="0.25" class="edge-flow" style="animation-delay:0.8s"/>
+                    <!-- Edges: Layer 3 -> Output -->
+                    <line x1="136" y1="40" x2="169" y2="60" stroke="#38bdf8" stroke-width="1" opacity="0.25" class="edge-flow" style="animation-delay:0.2s"/>
+                    <line x1="136" y1="40" x2="169" y2="100" stroke="#38bdf8" stroke-width="1" opacity="0.2" class="edge-flow" style="animation-delay:0.4s"/>
+                    <line x1="136" y1="75" x2="169" y2="60" stroke="#818cf8" stroke-width="1" opacity="0.2" class="edge-flow" style="animation-delay:0.3s"/>
+                    <line x1="136" y1="75" x2="169" y2="100" stroke="#818cf8" stroke-width="1" opacity="0.25" class="edge-flow" style="animation-delay:0.5s"/>
+                    <line x1="136" y1="110" x2="169" y2="60" stroke="#38bdf8" stroke-width="1" opacity="0.2" class="edge-flow" style="animation-delay:0.4s"/>
+                    <line x1="136" y1="110" x2="169" y2="100" stroke="#38bdf8" stroke-width="1" opacity="0.25" class="edge-flow" style="animation-delay:0.6s"/>
+                </svg>
+            </div>
+
+            <!-- Title -->
+            <h1 class="text-5xl md:text-7xl font-extrabold gradient-text text-center mb-4 opacity-0 animate-[fadeIn_1s_ease_0.4s_forwards]">
+                Machine Learning
+            </h1>
+            <p class="text-lg md:text-xl text-slate-400 text-center max-w-2xl mb-10 opacity-0 animate-[fadeIn_1s_ease_0.6s_forwards]">
+                Opanuj uczenie maszynowe krok po kroku. Od regresji liniowej i gradientu, po zaawansowane algorytmy.
+                Teoria, interaktywne wizualizacje i quizy.
+            </p>
+            <a href="lekcja1.html" class="cta-btn text-white font-semibold px-8 py-3 rounded-full text-lg opacity-0 animate-[fadeIn_1s_ease_0.8s_forwards]">
+                <span>Zacznij nauke &#10132;</span>
+            </a>
+
+            <!-- Scroll indicator -->
+            <div class="absolute bottom-10 animate-bounce text-slate-500">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 9l6 6 6-6"/>
+                </svg>
+            </div>
+        </section>
+
+        <!-- Course content cards -->
+        <section class="px-6 pb-20 max-w-6xl mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-2">Czego sie nauczysz?</h2>
+            <p class="text-slate-400 text-center mb-12 max-w-xl mx-auto">
+                Interaktywne lekcje obejmujace fundamenty uczenia maszynowego. Kazda zawiera teorie, wizualizacje i quiz.
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Card 1 -->
+                <a href="lekcja1.html" class="glass-card rounded-2xl p-8 block group">
+                    <div class="flex items-start gap-5">
+                        <div class="flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br from-accent/20 to-purple/20 flex items-center justify-center text-2xl font-bold text-accent border border-accent/20">
+                            01
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-100 mb-2 group-hover:text-accent transition-colors">
+                                Regresja Liniowa
+                            </h3>
+                            <p class="text-sm text-slate-400 mb-4 leading-relaxed">
+                                Hipoteza liniowa, parametry modelu, funkcja kosztu MSE i dopasowanie prostej do danych.
+                                Interaktywne suwaki pozwola Ci zobaczyc, jak model uczy sie na danych.
+                            </p>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="tag">Hipoteza</span>
+                                <span class="tag">Parametry w, b</span>
+                                <span class="tag tag-purple">MSE</span>
+                                <span class="tag tag-purple">Koszt</span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Card 2 -->
+                <a href="lekcja2.html" class="glass-card rounded-2xl p-8 block group">
+                    <div class="flex items-start gap-5">
+                        <div class="flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br from-purple/20 to-accent/20 flex items-center justify-center text-2xl font-bold text-purple border border-purple/20">
+                            02
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-100 mb-2 group-hover:text-purple transition-colors">
+                                Gradient Descent
+                            </h3>
+                            <p class="text-sm text-slate-400 mb-4 leading-relaxed">
+                                Intuicja pochodnej, kierunek najszybszego spadku, learning rate i jego wplyw na zbieznosc.
+                                Symulacja overshooting w czasie rzeczywistym.
+                            </p>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="tag">Pochodna</span>
+                                <span class="tag">Gradient</span>
+                                <span class="tag tag-purple">Learning Rate</span>
+                                <span class="tag tag-purple">Zbieznosc</span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- How to use -->
+        <section class="px-6 pb-24 max-w-5xl mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-12">Jak korzystac z kursu?</h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="text-center">
+                    <div class="info-icon mx-auto mb-4">&#128214;</div>
+                    <h3 class="font-semibold text-slate-200 mb-2">Czytaj teorie</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">
+                        Przerabiaj kolejne lekcje we wlasnym tempie. Teoria jest przedstawiona z wzorami LaTeX
+                        i przystepnymi wyjasnieniami "Po ludzku".
+                    </p>
+                </div>
+                <div class="text-center">
+                    <div class="info-icon mx-auto mb-4">&#127912;</div>
+                    <h3 class="font-semibold text-slate-200 mb-2">Eksploruj wizualizacje</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">
+                        Interaktywne wykresy i suwaki pozwola Ci zrozumiec abstrakcyjne pojecia
+                        w intuicyjny sposob.
+                    </p>
+                </div>
+                <div class="text-center">
+                    <div class="info-icon mx-auto mb-4">&#127891;</div>
+                    <h3 class="font-semibold text-slate-200 mb-2">Rozwiaz quizy</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">
+                        Na koncu kazdej lekcji znajdziesz quiz ABCD,
+                        ktory pozwoli Ci przetestowac zdobyta wiedze.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="border-t border-slate-800 py-8 text-center text-sm text-slate-500">
+            <a href="https://github.com/recytator/" class="hover:text-accent transition-colors">
+                Wykonanie: Milosz Prusinowski
+            </a>
+        </footer>
+    </main>
+
+    <!-- Fade-in keyframe -->
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
+    <!-- Particle system -->
+    <script>
+        (function() {
+            const container = document.getElementById('particles');
+            const colors = ['#38bdf8', '#818cf8'];
+            function createParticle() {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                const size = Math.random() * 3 + 1;
+                const x = Math.random() * 100;
+                const dur = Math.random() * 8 + 10;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                p.style.cssText = `
+                    width:${size}px;height:${size}px;
+                    left:${x}%;bottom:-10px;
+                    background:${color};
+                    animation-duration:${dur}s;
+                    animation-delay:${Math.random()*5}s;
+                `;
+                container.appendChild(p);
+                setTimeout(() => p.remove(), (dur + 5) * 1000);
+            }
+            setInterval(createParticle, 600);
+            for(let i = 0; i < 15; i++) setTimeout(createParticle, i * 200);
+        })();
+
+        // Mobile menu toggle
+        document.getElementById('menuBtn').addEventListener('click', () => {
+            document.getElementById('mobileMenu').classList.toggle('hidden');
+        });
+    </script>
+</body>
+</html>

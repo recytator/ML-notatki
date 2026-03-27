@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lekcja 1 - Regresja Liniowa | ML Portal</title>
+    <meta name="description" content="Regresja liniowa: hipoteza, parametry w i b, funkcja kosztu MSE. Interaktywne wizualizacje i quiz.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        deep: '#0f172a',
+                        card: '#1e293b',
+                        accent: '#38bdf8',
+                        purple: '#818cf8',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        MathJax = {
+            tex: { inlineMath: [['$','$'], ['\\(','\\)']], displayMath: [['$$','$$'], ['\\[','\\]']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background-color: #0f172a; color: #e2e8f0; }
+        .grid-bg {
+            background-image:
+                linear-gradient(rgba(56,189,248,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(56,189,248,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+        /* Navbar */
+        nav {
+            backdrop-filter: blur(16px);
+            background: rgba(15,23,42,0.85);
+            border-bottom: 1px solid rgba(56,189,248,0.08);
+        }
+        /* Sidebar */
+        .sidebar-link {
+            border-left: 3px solid transparent;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            transition: all 0.2s ease;
+            display: block;
+        }
+        .sidebar-link:hover { color: #e2e8f0; border-color: #334155; }
+        .sidebar-link.active {
+            color: #38bdf8;
+            border-color: #38bdf8;
+            background: rgba(56,189,248,0.05);
+        }
+        /* Section styling */
+        .theory-block {
+            background: rgba(30,41,59,0.5);
+            border: 1px solid rgba(56,189,248,0.08);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+        .human-box {
+            background: rgba(30,41,59,0.7);
+            border-left: 4px solid #818cf8;
+            border-radius: 0 12px 12px 0;
+            padding: 1.25rem 1.5rem;
+            margin: 1.5rem 0;
+        }
+        .interactive-box {
+            background: rgba(15,23,42,0.8);
+            border: 1px solid rgba(129,140,248,0.12);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+        /* Custom Slider */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #334155;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(56,189,248,0.4);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px rgba(56,189,248,0.4);
+        }
+        /* Quiz */
+        .quiz-option {
+            background: rgba(30,41,59,0.5);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 12px 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .quiz-option:hover { border-color: #38bdf8; background: rgba(56,189,248,0.05); }
+        .quiz-option.correct { border-color: #22c55e; background: rgba(34,197,94,0.1); }
+        .quiz-option.wrong { border-color: #ef4444; background: rgba(239,68,68,0.1); }
+        .quiz-option.disabled { pointer-events: none; opacity: 0.7; }
+        /* Canvas */
+        canvas { border-radius: 12px; }
+        /* Section divider */
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(56,189,248,0.2), rgba(129,140,248,0.2), transparent);
+            margin: 3rem 0;
+        }
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        /* Fadeup animation */
+        .fade-up {
+            opacity: 0; transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body class="grid-bg">
+
+    <!-- Navbar -->
+    <nav class="fixed top-0 left-0 right-0 z-50 px-6 py-4">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-3 group">
+                <svg width="32" height="32" viewBox="0 0 100 100" class="opacity-80 group-hover:opacity-100 transition-opacity">
+                    <circle cx="20" cy="30" r="5" fill="#38bdf8" opacity="0.8"/>
+                    <circle cx="20" cy="70" r="5" fill="#38bdf8" opacity="0.8"/>
+                    <circle cx="50" cy="20" r="5" fill="#818cf8" opacity="0.8"/>
+                    <circle cx="50" cy="50" r="5" fill="#818cf8" opacity="0.8"/>
+                    <circle cx="50" cy="80" r="5" fill="#818cf8" opacity="0.8"/>
+                    <circle cx="80" cy="50" r="5" fill="#38bdf8" opacity="0.8"/>
+                    <line x1="20" y1="30" x2="50" y2="20" stroke="#38bdf8" stroke-width="1" opacity="0.3"/>
+                    <line x1="20" y1="30" x2="50" y2="50" stroke="#38bdf8" stroke-width="1" opacity="0.3"/>
+                    <line x1="20" y1="70" x2="50" y2="50" stroke="#818cf8" stroke-width="1" opacity="0.3"/>
+                    <line x1="20" y1="70" x2="50" y2="80" stroke="#818cf8" stroke-width="1" opacity="0.3"/>
+                    <line x1="50" y1="20" x2="80" y2="50" stroke="#38bdf8" stroke-width="1" opacity="0.3"/>
+                    <line x1="50" y1="50" x2="80" y2="50" stroke="#818cf8" stroke-width="1" opacity="0.3"/>
+                    <line x1="50" y1="80" x2="80" y2="50" stroke="#38bdf8" stroke-width="1" opacity="0.3"/>
+                </svg>
+                <span class="text-lg font-bold text-slate-200 group-hover:text-accent transition-colors">ML Portal</span>
+            </a>
+            <div class="hidden md:flex items-center gap-6 text-sm text-slate-400">
+                <a href="index.html" class="hover:text-accent transition-colors">Strona glowna</a>
+                <a href="lekcja1.html" class="text-accent font-medium">Lekcja 1</a>
+                <a href="lekcja2.html" class="hover:text-accent transition-colors">Lekcja 2</a>
+            </div>
+            <button id="menuBtn" class="md:hidden text-slate-400 hover:text-accent transition-colors">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+            </button>
+        </div>
+        <div id="mobileMenu" class="hidden md:hidden mt-4 pb-4 border-t border-slate-700/50 pt-4">
+            <div class="flex flex-col gap-3 text-sm text-slate-400">
+                <a href="index.html">Strona glowna</a>
+                <a href="lekcja1.html" class="text-accent font-medium">Lekcja 1: Regresja Liniowa</a>
+                <a href="lekcja2.html">Lekcja 2: Gradient Descent</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Layout: Sidebar + Content -->
+    <div class="flex pt-20">
+        <!-- Sidebar -->
+        <aside class="hidden lg:block w-64 flex-shrink-0 sticky top-20 self-start h-[calc(100vh-5rem)] overflow-y-auto px-4 py-6">
+            <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 px-4">Spis tresci</h3>
+            <a href="#sekcja1" class="sidebar-link active" data-section="sekcja1">1. Hipoteza i parametry</a>
+            <a href="#sekcja2" class="sidebar-link" data-section="sekcja2">2. Funkcja kosztu (MSE)</a>
+            <a href="#quiz" class="sidebar-link" data-section="quiz">Sprawdz wiedze</a>
+            <div class="mt-8 px-4">
+                <a href="lekcja2.html" class="text-xs text-slate-500 hover:text-accent transition-colors flex items-center gap-1">
+                    Nastepna: Gradient Descent &#10132;
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="flex-1 max-w-4xl mx-auto px-6 pb-20">
+            <!-- Lesson header -->
+            <div class="mb-10 fade-up">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="text-accent font-mono text-sm">Lekcja 01</span>
+                    <span class="w-8 h-px bg-accent/30"></span>
+                </div>
+                <h1 class="text-4xl md:text-5xl font-extrabold mb-4">
+                    <span class="bg-gradient-to-r from-accent to-purple bg-clip-text text-transparent">Regresja Liniowa</span>
+                </h1>
+                <p class="text-slate-400 text-lg leading-relaxed max-w-2xl">
+                    Pierwszy i najwazniejszy algorytm uczenia maszynowego. Dowiedz sie, jak maszyna uczy sie
+                    dopasowywac prosta do danych i jak mierzy swoje bledy.
+                </p>
+            </div>
+
+            <!-- ============ SEKCJA 1: Hipoteza i parametry ============ -->
+            <section id="sekcja1" class="mb-6 fade-up">
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+                    <span class="text-accent font-mono text-lg">01</span>
+                    Hipoteza i parametry $w$, $b$
+                </h2>
+
+                <!-- Theory -->
+                <div class="theory-block mb-6">
+                    <h3 class="text-lg font-semibold text-accent mb-4">Teoria</h3>
+                    <p class="text-slate-300 leading-relaxed mb-4">
+                        Regresja liniowa to model, ktory przybiera forme prostej na plaszczyznie.
+                        Jego zadaniem jest znalezienie <strong>najlepszego dopasowania</strong> do danych treningowych.
+                    </p>
+                    <p class="text-slate-300 leading-relaxed mb-4">
+                        Hipoteze (predykcje modelu) zapisujemy jako:
+                    </p>
+                    <div class="text-center text-xl my-6">
+                        $$h_w(x) = w \cdot x + b$$
+                    </div>
+                    <p class="text-slate-300 leading-relaxed mb-2">gdzie:</p>
+                    <ul class="text-slate-400 space-y-2 ml-4">
+                        <li>$w$ (waga) kontroluje <strong class="text-slate-200">nachylenie</strong> prostej,</li>
+                        <li>$b$ (bias / przesuniecie) kontroluje <strong class="text-slate-200">przeciecie z osia Y</strong>,</li>
+                        <li>$x$ to zmienna wejsciowa (cecha / feature).</li>
+                    </ul>
+                    <p class="text-slate-300 leading-relaxed mt-4">
+                        Cel algorytmu: znalezc takie wartosci $w$ i $b$, zeby prosta jak najlepiej "lezala" wsrod punktow danych.
+                    </p>
+                </div>
+
+                <!-- Po ludzku -->
+                <div class="human-box">
+                    <p class="text-sm font-semibold text-purple mb-2">&#128161; Po ludzku:</p>
+                    <p class="text-slate-300 leading-relaxed">
+                        Wyobraz sobie, ze masz rozrzucone punkty na kartce (np. cena mieszkania vs. jego powierzchnia).
+                        Regresja liniowa to po prostu <strong>linijka</strong>, ktora probujesz polozyc na tych punktach tak,
+                        zeby przechodzila jak najblizej kazdego z nich. Parametr $w$ to kat nachylenia linijki,
+                        a $b$ to miejsce, w ktorym dotyka osi pionowej.
+                    </p>
+                </div>
+
+                <!-- Interactive: Line fitting -->
+                <div class="interactive-box mt-6">
+                    <h3 class="text-lg font-semibold text-purple mb-4">&#127912; Interakcja: Dopasuj prosta</h3>
+                    <p class="text-sm text-slate-400 mb-4">
+                        Przesuwaj suwaki $w$ i $b$, aby zobaczyc, jak zmienia sie dopasowanie prostej do punktow danych.
+                    </p>
+                    <canvas id="lineCanvas" width="700" height="350" class="w-full bg-[#0c1222] mb-4"></canvas>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                            <label class="text-sm text-slate-400 flex justify-between mb-2">
+                                <span>Waga $w$ (nachylenie)</span>
+                                <span class="text-accent font-mono" id="wValue">1.00</span>
+                            </label>
+                            <input type="range" id="wSlider" min="-3" max="5" step="0.05" value="1">
+                        </div>
+                        <div>
+                            <label class="text-sm text-slate-400 flex justify-between mb-2">
+                                <span>Bias $b$ (przesuniecie)</span>
+                                <span class="text-accent font-mono" id="bValue">0.00</span>
+                            </label>
+                            <input type="range" id="bSlider" min="-5" max="5" step="0.1" value="0">
+                        </div>
+                    </div>
+                    <p class="text-center text-sm text-slate-500 mt-3">
+                        Aktualny koszt MSE: <span class="text-accent font-mono font-bold" id="mseDisplay">0.00</span>
+                    </p>
+                </div>
+            </section>
+
+            <div class="section-divider"></div>
+
+            <!-- ============ SEKCJA 2: Funkcja kosztu MSE ============ -->
+            <section id="sekcja2" class="mb-6 fade-up">
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+                    <span class="text-accent font-mono text-lg">02</span>
+                    Funkcja kosztu (MSE)
+                </h2>
+
+                <!-- Theory -->
+                <div class="theory-block mb-6">
+                    <h3 class="text-lg font-semibold text-accent mb-4">Teoria</h3>
+                    <p class="text-slate-300 leading-relaxed mb-4">
+                        Zeby ocenic, jak dobrze (lub zle) nasza prosta pasuje do danych, potrzebujemy
+                        <strong>funkcji kosztu</strong> (ang. cost function). Najczestsza jest
+                        <strong>MSE</strong> (Mean Squared Error, sredni blad kwadratowy):
+                    </p>
+                    <div class="text-center text-xl my-6">
+                        $$J(w, b) = \frac{1}{m} \sum_{i=1}^{m} \left( h_w(x_i) - y_i \right)^2$$
+                    </div>
+                    <p class="text-slate-300 leading-relaxed mb-2">gdzie:</p>
+                    <ul class="text-slate-400 space-y-2 ml-4">
+                        <li>$m$ to liczba przykladow treningowych,</li>
+                        <li>$h_w(x_i)$ to predykcja dla $i$-tego przykladu,</li>
+                        <li>$y_i$ to prawdziwa wartosc dla $i$-tego przykladu,</li>
+                        <li>$(h_w(x_i) - y_i)^2$ to kwadrat bledu (odleglosci) dla pojedynczego punktu.</li>
+                    </ul>
+                    <p class="text-slate-300 leading-relaxed mt-4">
+                        Im mniejsza wartosc $J(w,b)$, tym lepsza prosta. Idealny model ma $J = 0$.
+                    </p>
+                </div>
+
+                <!-- Po ludzku -->
+                <div class="human-box">
+                    <p class="text-sm font-semibold text-purple mb-2">&#128161; Po ludzku:</p>
+                    <p class="text-slate-300 leading-relaxed">
+                        MSE to po prostu "srednia odleglosc" (podniesiona do kwadratu) miedzy Twoja prosta
+                        a prawdziwymi punktami. Podnosimy do kwadratu, zeby kary za duze bledy byly
+                        proporcjonalnie wieksze. Pomysl o tym jak o <strong>"ile srednio prosta mija sie z prawda"</strong>.
+                    </p>
+                </div>
+
+                <!-- Interactive: MSE parabola -->
+                <div class="interactive-box mt-6">
+                    <h3 class="text-lg font-semibold text-purple mb-4">&#128200; Interakcja: Wykres kosztu MSE</h3>
+                    <p class="text-sm text-slate-400 mb-4">
+                        Ponizszy wykres pokazuje wartosc funkcji kosztu $J(w)$ dla roznych wartosci $w$
+                        (przy stalym $b$). Czerwony punkt wskazuje aktualny koszt, kontrolowany suwakiem z Sekcji 1.
+                    </p>
+                    <div class="max-w-lg mx-auto">
+                        <canvas id="mseChart" height="280"></canvas>
+                    </div>
+                    <p class="text-center text-xs text-slate-500 mt-3">
+                        Przesun suwak $w$ w Sekcji 1, aby zobaczyc, jak punkt przesuwa sie po paraboli kosztu.
+                    </p>
+                </div>
+            </section>
+
+            <div class="section-divider"></div>
+
+            <!-- ============ QUIZ ============ -->
+            <section id="quiz" class="fade-up">
+                <h2 class="text-2xl font-bold mb-2 flex items-center gap-3">
+                    &#127891; Sprawdz swoja wiedze
+                </h2>
+                <p class="text-slate-400 mb-8">Odpowiedz na pytania, aby sprawdzic, czy dobrze rozumiesz regresje liniowa.</p>
+
+                <!-- Q1 -->
+                <div class="mb-8" id="q1-block">
+                    <p class="font-semibold text-slate-200 mb-3">
+                        1. Co kontroluje parametr $w$ w rownaniu $h(x) = wx + b$?
+                    </p>
+                    <div class="space-y-2">
+                        <div class="quiz-option" onclick="checkAnswer('q1','A',this)" data-q="q1">
+                            <span class="text-accent font-mono mr-2">A.</span> Przesuniecie prostej wzdluz osi Y
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer('q1','B',this)" data-q="q1">
+                            <span class="text-accent font-mono mr-2">B.</span> Nachylenie (kat) prostej
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer('q1','C',this)" data-q="q1">
+                            <span class="text-accent font-mono mr-2">C.</span> Liczbe punktow treningowych
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer('q1','D',this)" data-q="q1">
+                            <span class="text-accent font-mono mr-2">D.</span> Wartosc funkcji kosztu
+                        </div>
+                    </div>
+                    <div id="q1-feedback" class="mt-3 text-sm hidden"></div>
+                </div>
+
+                <!-- Q2 -->
+                <div class="mb-8" id="q2-block">
+                    <p class="font-semibold text-slate-200 mb-3">
+                        2. Co sie stanie z wartoscia MSE, gdy prosta idealnie przejdzie przez wszystkie punkty?
+                    </p>
+                    <div class="space-y-2">
+                        <div class="quiz-option" onclick="checkAnswer('q2','A',this)" data-q="q2">
+                            <span class="text-accent font-mono mr-2">A.</span> MSE bedzie rowne 1
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer('q2','B',this)" data-q="q2">
+                            <span class="text-accent font-mono mr-2">B.</span> MSE bedzie rowne 0
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer('q2','C',this)" data-q="q2">
+                            <span class="text-accent font-mono mr-2">C.</span> MSE bedzie ujemne
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer('q2','D',this)" data-q="q2">
+                            <span class="text-accent font-mono mr-2">D.</span> MSE bedzie nieskonczone
+                        </div>
+                    </div>
+                    <div id="q2-feedback" class="mt-3 text-sm hidden"></div>
+                </div>
+
+                <!-- Q3 -->
+                <div class="mb-8" id="q3-block">
+                    <p class="font-semibold text-slate-200 mb-3">
+                        3. Dlaczego w MSE bledy sa podnoszone do kwadratu?
+                    </p>
+                    <div class="space-y-2">
+                        <div class="quiz-option" onclick="checkAnswer('q3','A',this)" data-q="q3">
+                            <span class="text-accent font-mono mr-2">A.</span> Zeby bledy ujemne i dodatnie sie nie znosity oraz zeby karac duze odchylenia
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer('q3','B',this)" data-q="q3">
+                            <span class="text-accent font-mono mr-2">B.</span> Zeby wynik byl zawsze ujemny
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer('q3','C',this)" data-q="q3">
+                            <span class="text-accent font-mono mr-2">C.</span> Zeby zmniejszyc czas obliczen
+                        </div>
+                        <div class="quiz-option" onclick="checkAnswer('q3','D',this)" data-q="q3">
+                            <span class="text-accent font-mono mr-2">D.</span> Jest to wymog matematyczny bez praktycznego znaczenia
+                        </div>
+                    </div>
+                    <div id="q3-feedback" class="mt-3 text-sm hidden"></div>
+                </div>
+            </section>
+
+            <!-- Lesson navigation -->
+            <div class="flex justify-between items-center mt-12 pt-8 border-t border-slate-800">
+                <a href="index.html" class="text-sm text-slate-400 hover:text-accent transition-colors">&#8592; Strona glowna</a>
+                <a href="lekcja2.html" class="text-sm font-medium text-accent hover:text-purple transition-colors">Lekcja 2: Gradient Descent &#10132;</a>
+            </div>
+
+            <!-- Footer -->
+            <footer class="mt-12 pt-8 border-t border-slate-800 text-center text-sm text-slate-500">
+                <a href="https://github.com/recytator/" class="hover:text-accent transition-colors">Wykonanie: Milosz Prusinowski</a>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+    // ========= DATA =========
+    const dataPoints = [
+        {x: 1, y: 2.2}, {x: 1.5, y: 3.1}, {x: 2, y: 3.8},
+        {x: 2.5, y: 4.2}, {x: 3, y: 5.5}, {x: 3.5, y: 5.8},
+        {x: 4, y: 7.1}, {x: 4.5, y: 7.6}, {x: 5, y: 8.9},
+        {x: 5.5, y: 9.2}, {x: 6, y: 10.5}
+    ];
+
+    // ========= LINE CANVAS =========
+    const lineCanvas = document.getElementById('lineCanvas');
+    const ctx = lineCanvas.getContext('2d');
+    const wSlider = document.getElementById('wSlider');
+    const bSlider = document.getElementById('bSlider');
+    const wValue = document.getElementById('wValue');
+    const bValue = document.getElementById('bValue');
+    const mseDisplay = document.getElementById('mseDisplay');
+
+    // Canvas scaling
+    function resizeCanvas() {
+        const rect = lineCanvas.parentElement.getBoundingClientRect();
+        lineCanvas.width = rect.width;
+        lineCanvas.height = 350;
+    }
+
+    function mapX(x) { return 50 + (x / 7) * (lineCanvas.width - 100); }
+    function mapY(y) { return lineCanvas.height - 40 - (y / 14) * (lineCanvas.height - 80); }
+
+    function calculateMSE(w, b) {
+        let sum = 0;
+        dataPoints.forEach(p => { const err = (w * p.x + b) - p.y; sum += err * err; });
+        return sum / dataPoints.length;
+    }
+
+    function drawLine() {
+        resizeCanvas();
+        const w = parseFloat(wSlider.value);
+        const b = parseFloat(bSlider.value);
+        wValue.textContent = w.toFixed(2);
+        bValue.textContent = b.toFixed(2);
+
+        ctx.clearRect(0, 0, lineCanvas.width, lineCanvas.height);
+
+        // Grid
+        ctx.strokeStyle = 'rgba(56,189,248,0.06)';
+        ctx.lineWidth = 1;
+        for(let i = 0; i <= 7; i++) {
+            const x = mapX(i);
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, lineCanvas.height); ctx.stroke();
+        }
+        for(let i = 0; i <= 14; i++) {
+            const y = mapY(i);
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(lineCanvas.width, y); ctx.stroke();
+        }
+
+        // Axis labels
+        ctx.fillStyle = '#475569';
+        ctx.font = '11px Inter';
+        ctx.textAlign = 'center';
+        for(let i = 0; i <= 7; i++) ctx.fillText(i, mapX(i), lineCanvas.height - 10);
+        ctx.textAlign = 'right';
+        for(let i = 0; i <= 14; i += 2) ctx.fillText(i, 40, mapY(i) + 4);
+
+        // Error lines (whiskers)
+        dataPoints.forEach(p => {
+            const pred = w * p.x + b;
+            ctx.strokeStyle = 'rgba(239,68,68,0.35)';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([4, 3]);
+            ctx.beginPath();
+            ctx.moveTo(mapX(p.x), mapY(p.y));
+            ctx.lineTo(mapX(p.x), mapY(pred));
+            ctx.stroke();
+            ctx.setLineDash([]);
+        });
+
+        // Regression line
+        const x0 = 0, x1 = 7;
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2.5;
+        ctx.shadowColor = '#38bdf8';
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.moveTo(mapX(x0), mapY(w * x0 + b));
+        ctx.lineTo(mapX(x1), mapY(w * x1 + b));
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Data points
+        dataPoints.forEach(p => {
+            ctx.beginPath();
+            ctx.arc(mapX(p.x), mapY(p.y), 6, 0, Math.PI * 2);
+            ctx.fillStyle = '#818cf8';
+            ctx.shadowColor = '#818cf8';
+            ctx.shadowBlur = 6;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = '#c7d2fe';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        });
+
+        // MSE
+        const mse = calculateMSE(w, b);
+        mseDisplay.textContent = mse.toFixed(4);
+
+        // Update MSE chart
+        updateMSEChart(w, mse);
+    }
+
+    wSlider.addEventListener('input', drawLine);
+    bSlider.addEventListener('input', drawLine);
+
+    // ========= MSE CHART =========
+    const mseCtx = document.getElementById('mseChart').getContext('2d');
+
+    // Generate MSE curve for w from -3 to 5, with current b
+    function getMSECurve() {
+        const b = parseFloat(bSlider.value);
+        const labels = [];
+        const values = [];
+        for(let w = -3; w <= 5; w += 0.1) {
+            labels.push(w.toFixed(1));
+            values.push(calculateMSE(w, b));
+        }
+        return { labels, values };
+    }
+
+    const curveData = getMSECurve();
+    const mseChart = new Chart(mseCtx, {
+        type: 'line',
+        data: {
+            labels: curveData.labels,
+            datasets: [
+                {
+                    label: 'J(w)',
+                    data: curveData.values,
+                    borderColor: 'rgba(56,189,248,0.7)',
+                    backgroundColor: 'rgba(56,189,248,0.05)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    borderWidth: 2
+                },
+                {
+                    label: 'Aktualny koszt',
+                    data: [],
+                    borderColor: '#ef4444',
+                    backgroundColor: '#ef4444',
+                    pointRadius: 8,
+                    pointHoverRadius: 10,
+                    showLine: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: true }
+            },
+            scales: {
+                x: {
+                    title: { display: true, text: 'w', color: '#94a3b8', font: { size: 13 } },
+                    ticks: { color: '#64748b', maxTicksLimit: 10, font: { size: 11 } },
+                    grid: { color: 'rgba(56,189,248,0.06)' }
+                },
+                y: {
+                    title: { display: true, text: 'J(w)', color: '#94a3b8', font: { size: 13 } },
+                    ticks: { color: '#64748b', font: { size: 11 } },
+                    grid: { color: 'rgba(56,189,248,0.06)' },
+                    min: 0
+                }
+            }
+        }
+    });
+
+    function updateMSEChart(w, mse) {
+        // Regenerate curve with current b
+        const curve = getMSECurve();
+        mseChart.data.labels = curve.labels;
+        mseChart.data.datasets[0].data = curve.values;
+
+        // Find closest index for current w
+        const idx = Math.round((w + 3) / 0.1);
+        const pointData = new Array(curve.labels.length).fill(null);
+        if(idx >= 0 && idx < pointData.length) pointData[idx] = mse;
+        mseChart.data.datasets[1].data = pointData;
+        mseChart.update('none');
+    }
+
+    // ========= QUIZ =========
+    const answers = { q1: 'B', q2: 'B', q3: 'A' };
+    const explanations = {
+        q1: 'Parametr $w$ to waga, ktora kontroluje nachylenie prostej. Im wieksze $w$, tym bardziej stroma prosta.',
+        q2: 'Gdy prosta przechodzi dokladnie przez wszystkie punkty, kazdy blad $(h(x_i) - y_i)$ wynosi 0, wiec MSE = 0.',
+        q3: 'Podnoszenie do kwadratu eliminuje znaki (bledy ujemne i dodatnie sie nie skracaja) oraz mocniej karze duze odchylenia.'
+    };
+
+    function checkAnswer(qId, selected, el) {
+        const allOptions = document.querySelectorAll(`[data-q="${qId}"]`);
+        if(el.classList.contains('disabled')) return;
+
+        allOptions.forEach(opt => {
+            opt.classList.add('disabled');
+            const letter = opt.querySelector('.font-mono').textContent.replace('.','').trim();
+            if(letter === answers[qId]) opt.classList.add('correct');
+            else if(opt === el && selected !== answers[qId]) opt.classList.add('wrong');
+        });
+
+        const fb = document.getElementById(qId + '-feedback');
+        fb.classList.remove('hidden');
+        if(selected === answers[qId]) {
+            fb.innerHTML = '<span class="text-green-400">&#10004; Poprawna odpowiedz!</span> ' + explanations[qId];
+        } else {
+            fb.innerHTML = '<span class="text-red-400">&#10008; Niepoprawnie.</span> ' + explanations[qId];
+        }
+        // Re-render MathJax in feedback
+        if(window.MathJax) MathJax.typesetPromise([fb]);
+    }
+
+    // ========= SCROLL SPY (Sidebar) =========
+    const sections = document.querySelectorAll('section[id]');
+    const sidebarLinks = document.querySelectorAll('.sidebar-link');
+
+    window.addEventListener('scroll', () => {
+        let current = '';
+        sections.forEach(sec => {
+            const top = sec.offsetTop - 120;
+            if(window.scrollY >= top) current = sec.id;
+        });
+        sidebarLinks.forEach(link => {
+            link.classList.remove('active');
+            if(link.dataset.section === current) link.classList.add('active');
+        });
+    });
+
+    // ========= FADE-UP on scroll =========
+    const fadeEls = document.querySelectorAll('.fade-up');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+    fadeEls.forEach(el => observer.observe(el));
+
+    // ========= MOBILE MENU =========
+    document.getElementById('menuBtn').addEventListener('click', () => {
+        document.getElementById('mobileMenu').classList.toggle('hidden');
+    });
+
+    // ========= INIT =========
+    window.addEventListener('load', drawLine);
+    window.addEventListener('resize', drawLine);
+    </script>
+</body>
+</html>
