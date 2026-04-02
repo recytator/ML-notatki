@@ -1,0 +1,65 @@
+--- PAGE 1 ---
+Trendy i sezonowość w danych czasowych
+
+--- PAGE 2 ---
+2
+Czym jest sezonowość?
+1. Sezonowość to cykliczne, powtarzające się zmiany w 
+danych – np. kwartalne, miesięczne.
+2. Występuje w sprzedaży, turystyce, energii, rolnictwie...
+3. Typowe cechy sezonowości:
+a.   stała długość cyklu (np. co 12 miesięcy),
+b.   powtarzalny charakter,
+c.   można ją oddzielić od trendu.
+
+--- PAGE 3 ---
+3
+Wprowadzenie
+1. Trend → długoterminowy kierunek (wzrost/spadek)
+2. Sezonowość → powtarzalne wzorce (np. miesięczne, 
+kwartalne)
+3. Szum (noise) → losowe wahania
+
+--- PAGE 4 ---
+4
+Estymowanie zjawisk sezonowych
+1. Rozdzielenie trendu i sezonowości (np. 
+metoda ruchomej średniej).
+2.  Obliczenie wskaźników sezonowych
+a. (średnia wartości dla danego okresu).
+3.  Usunięcie sezonowości – ułatwia analizę 
+trendu i prognozowanie.
+4.  Prognozowanie z uwzględnieniem 
+sezonowości:
+a.  dodanie/namnożenie wskaźników 
+sezonowych do trendu.
+
+--- PAGE 5 ---
+5
+Zadanie
+1. Oblicz średnią sprzedaż dla każdego kwartału.
+2. Oblicz wskaźniki sezonowe (średni udział każdego 
+kwartału).
+3. Zinterpretuj wyniki.
+--- PAGE 6 ---
+6
+Funkcja Excel Reglinx.ETS
+➔ Funkcja Reglinx.ETS używa 
+algorytmu wygładzania 
+wykładniczego (ETS) do 
+przewidywania przyszłej 
+wartości na podstawie serii 
+istniejących wartości. 
+➔ Ta funkcja najlepiej nadaje się 
+do nieliniowych modeli danych 
+z sezonowym wzorcem (wpisy 
+daty lub godziny 
+zorganizowane według stałego 
+kroku, np. godzinowego, 
+dziennego, miesięcznego, 
+rocznego itd.).
+
+--- PAGE 7 ---
+7
+Dziękuję za uwagę
+

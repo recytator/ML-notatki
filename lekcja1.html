@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lekcja 1 - Regresja Liniowa | ML Portal</title>
-    <meta name="description" content="Regresja liniowa: hipoteza, parametry w i b, funkcja kosztu MSE. Interaktywne wizualizacje i quiz.">
+    <title>Lekcja 1 - Regresja Wieloraka | ML Portal</title>
+    <meta name="description" content="Regresja wieloraka: model, wspolliniowosc, korelacja Pearsona, R kwadrat skorygowane.">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -15,6 +15,7 @@
                         card: '#1e293b',
                         accent: '#38bdf8',
                         purple: '#818cf8',
+                        warning: '#f59e0b',
                     }
                 }
             }
@@ -38,109 +39,37 @@
                 linear-gradient(90deg, rgba(56,189,248,0.03) 1px, transparent 1px);
             background-size: 60px 60px;
         }
-        /* Navbar */
-        nav {
-            backdrop-filter: blur(16px);
-            background: rgba(15,23,42,0.85);
-            border-bottom: 1px solid rgba(56,189,248,0.08);
-        }
-        /* Sidebar */
-        .sidebar-link {
-            border-left: 3px solid transparent;
-            padding: 8px 16px;
-            font-size: 0.85rem;
-            color: #94a3b8;
-            transition: all 0.2s ease;
-            display: block;
-        }
+        nav { backdrop-filter: blur(16px); background: rgba(15,23,42,0.85); border-bottom: 1px solid rgba(56,189,248,0.08); }
+        .sidebar-link { border-left: 3px solid transparent; padding: 8px 16px; font-size: 0.85rem; color: #94a3b8; transition: all 0.2s ease; display: block; }
         .sidebar-link:hover { color: #e2e8f0; border-color: #334155; }
-        .sidebar-link.active {
-            color: #38bdf8;
-            border-color: #38bdf8;
-            background: rgba(56,189,248,0.05);
-        }
-        /* Section styling */
-        .theory-block {
-            background: rgba(30,41,59,0.5);
-            border: 1px solid rgba(56,189,248,0.08);
-            border-radius: 16px;
-            padding: 2rem;
-        }
-        .human-box {
-            background: rgba(30,41,59,0.7);
-            border-left: 4px solid #818cf8;
-            border-radius: 0 12px 12px 0;
-            padding: 1.25rem 1.5rem;
-            margin: 1.5rem 0;
-        }
-        .interactive-box {
-            background: rgba(15,23,42,0.8);
-            border: 1px solid rgba(129,140,248,0.12);
-            border-radius: 16px;
-            padding: 2rem;
-        }
-        /* Custom Slider */
-        input[type="range"] {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 6px;
-            border-radius: 3px;
-            background: #334155;
-            outline: none;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 20px; height: 20px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #38bdf8, #818cf8);
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(56,189,248,0.4);
-        }
-        input[type="range"]::-moz-range-thumb {
-            width: 20px; height: 20px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #38bdf8, #818cf8);
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 0 10px rgba(56,189,248,0.4);
-        }
-        /* Quiz */
-        .quiz-option {
-            background: rgba(30,41,59,0.5);
-            border: 1px solid #334155;
-            border-radius: 12px;
-            padding: 12px 18px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
+        .sidebar-link.active { color: #38bdf8; border-color: #38bdf8; background: rgba(56,189,248,0.05); }
+        .theory-block { background: rgba(30,41,59,0.5); border: 1px solid rgba(56,189,248,0.08); border-radius: 16px; padding: 2rem; }
+        .human-box { background: rgba(30,41,59,0.7); border-left: 4px solid #818cf8; border-radius: 0 12px 12px 0; padding: 1.25rem 1.5rem; margin: 1.5rem 0; }
+        .interactive-box { background: rgba(15,23,42,0.8); border: 1px solid rgba(129,140,248,0.12); border-radius: 16px; padding: 2rem; }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #334155; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, #38bdf8, #818cf8); cursor: pointer; box-shadow: 0 0 10px rgba(56,189,248,0.4); }
+        input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, #38bdf8, #818cf8); cursor: pointer; border: none; box-shadow: 0 0 10px rgba(56,189,248,0.4); }
+        .sim-btn { background: linear-gradient(135deg, #38bdf8, #818cf8); color: white; padding: 10px 24px; border-radius: 10px; font-weight: 600; font-size: 0.9rem; border: none; cursor: pointer; transition: all 0.3s ease; }
+        .sim-btn:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(56,189,248,0.3); }
+        .sim-btn-outline { background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 10px 24px; border-radius: 10px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease; }
+        .sim-btn-outline:hover { background: rgba(239,68,68,0.1); }
+        .quiz-option { background: rgba(30,41,59,0.5); border: 1px solid #334155; border-radius: 12px; padding: 12px 18px; cursor: pointer; transition: all 0.3s ease; }
         .quiz-option:hover { border-color: #38bdf8; background: rgba(56,189,248,0.05); }
         .quiz-option.correct { border-color: #22c55e; background: rgba(34,197,94,0.1); }
         .quiz-option.wrong { border-color: #ef4444; background: rgba(239,68,68,0.1); }
         .quiz-option.disabled { pointer-events: none; opacity: 0.7; }
-        /* Canvas */
         canvas { border-radius: 12px; }
-        /* Section divider */
-        .section-divider {
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(56,189,248,0.2), rgba(129,140,248,0.2), transparent);
-            margin: 3rem 0;
-        }
-        /* Scrollbar */
+        .section-divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(56,189,248,0.2), rgba(129,140,248,0.2), transparent); margin: 3rem 0; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #475569; }
-        /* Fadeup animation */
-        .fade-up {
-            opacity: 0; transform: translateY(30px);
-            transition: opacity 0.6s ease, transform 0.6s ease;
-        }
+        .fade-up { opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease, transform 0.6s ease; }
         .fade-up.visible { opacity: 1; transform: translateY(0); }
     </style>
 </head>
 <body class="grid-bg">
 
-    <!-- Navbar -->
     <nav class="fixed top-0 left-0 right-0 z-50 px-6 py-4">
         <div class="max-w-6xl mx-auto flex items-center justify-between">
             <a href="index.html" class="flex items-center gap-3 group">
@@ -162,7 +91,7 @@
                 <span class="text-lg font-bold text-slate-200 group-hover:text-accent transition-colors">ML Portal</span>
             </a>
             <div class="hidden md:flex items-center gap-6 text-sm text-slate-400">
-                <a href="index.html" class="hover:text-accent transition-colors">Strona glowna</a>
+                <a href="index.html" class="hover:text-accent transition-colors">Strona glówna</a>
                 <a href="lekcja1.html" class="text-accent font-medium">Lekcja 1</a>
                 <a href="lekcja2.html" class="hover:text-accent transition-colors">Lekcja 2</a>
             </div>
@@ -172,171 +101,264 @@
         </div>
         <div id="mobileMenu" class="hidden md:hidden mt-4 pb-4 border-t border-slate-700/50 pt-4">
             <div class="flex flex-col gap-3 text-sm text-slate-400">
-                <a href="index.html">Strona glowna</a>
-                <a href="lekcja1.html" class="text-accent font-medium">Lekcja 1: Regresja Liniowa</a>
-                <a href="lekcja2.html">Lekcja 2: Gradient Descent</a>
+                <a href="index.html">Strona glówna</a>
+                <a href="lekcja1.html" class="text-accent font-medium">Lekcja 1: Regresja Wieloraka</a>
+                <a href="lekcja2.html">Lekcja 2: Trendy i Sezonowosc</a>
             </div>
         </div>
     </nav>
 
-    <!-- Layout: Sidebar + Content -->
     <div class="flex pt-20">
-        <!-- Sidebar -->
         <aside class="hidden lg:block w-64 flex-shrink-0 sticky top-20 self-start h-[calc(100vh-5rem)] overflow-y-auto px-4 py-6">
             <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 px-4">Spis tresci</h3>
-            <a href="#sekcja1" class="sidebar-link active" data-section="sekcja1">1. Hipoteza i parametry</a>
-            <a href="#sekcja2" class="sidebar-link" data-section="sekcja2">2. Funkcja kosztu (MSE)</a>
+            <a href="#sekcja1" class="sidebar-link active" data-section="sekcja1">1. Regresja Wieloraka</a>
+            <a href="#sekcja2" class="sidebar-link" data-section="sekcja2">2. Wspolczynnik Pearsona</a>
+            <a href="#sekcja3" class="sidebar-link" data-section="sekcja3">3. R Kwadrat Skorygowany</a>
             <a href="#quiz" class="sidebar-link" data-section="quiz">Sprawdz wiedze</a>
             <div class="mt-8 px-4">
                 <a href="lekcja2.html" class="text-xs text-slate-500 hover:text-accent transition-colors flex items-center gap-1">
-                    Nastepna: Gradient Descent &#10132;
+                    Nastepna: Trendy i Sezonowosc &#10132;
                 </a>
             </div>
         </aside>
 
-        <!-- Main content -->
         <main class="flex-1 max-w-4xl mx-auto px-6 pb-20">
-            <!-- Lesson header -->
             <div class="mb-10 fade-up">
                 <div class="flex items-center gap-3 mb-4">
                     <span class="text-accent font-mono text-sm">Lekcja 01</span>
                     <span class="w-8 h-px bg-accent/30"></span>
                 </div>
                 <h1 class="text-4xl md:text-5xl font-extrabold mb-4">
-                    <span class="bg-gradient-to-r from-accent to-purple bg-clip-text text-transparent">Regresja Liniowa</span>
+                    <span class="bg-gradient-to-r from-accent to-purple bg-clip-text text-transparent">Regresja Wieloraka</span>
                 </h1>
                 <p class="text-slate-400 text-lg leading-relaxed max-w-2xl">
-                    Pierwszy i najwazniejszy algorytm uczenia maszynowego. Dowiedz sie, jak maszyna uczy sie
-                    dopasowywac prosta do danych i jak mierzy swoje bledy.
+                    Od prostego modelu przechodzimy do rzeczywistości. Dowiedz się, co zrobić, gdy 
+                    predykcja zależy od wielu zmiennych jednocześnie, czym jest współliniowość i jak ocenić 
+                    poprawność rozbudowanego modelu (R kwadrat).
                 </p>
             </div>
 
-            <!-- ============ SEKCJA 1: Hipoteza i parametry ============ -->
+            <!-- ============ SEKCJA 1 ============ -->
             <section id="sekcja1" class="mb-6 fade-up">
                 <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
                     <span class="text-accent font-mono text-lg">01</span>
-                    Hipoteza i parametry $w$, $b$
+                    Czym jest Regresja Wieloraka (Multiple Regression)?
                 </h2>
 
-                <!-- Theory -->
                 <div class="theory-block mb-6">
                     <h3 class="text-lg font-semibold text-accent mb-4">Teoria</h3>
                     <p class="text-slate-300 leading-relaxed mb-4">
-                        Regresja liniowa to model, ktory przybiera forme prostej na plaszczyznie.
-                        Jego zadaniem jest znalezienie <strong>najlepszego dopasowania</strong> do danych treningowych.
-                    </p>
-                    <p class="text-slate-300 leading-relaxed mb-4">
-                        Hipoteze (predykcje modelu) zapisujemy jako:
+                        W przeciwieństwie do regresji prostej opierającej się na jednej zmiennej, w rzeczymistym świecie
+                        wartość wynikową kształtuje wiele różnorodnych wejść. Regresja wieloraka oszacowuje wpływ 
+                        <strong>wielu zmiennych objaśniających (zależnych)</strong> jednocześnie.
                     </p>
                     <div class="text-center text-xl my-6">
-                        $$h_w(x) = w \cdot x + b$$
+                        $$Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \dots + \beta_k X_k + \varepsilon$$
                     </div>
-                    <p class="text-slate-300 leading-relaxed mb-2">gdzie:</p>
-                    <ul class="text-slate-400 space-y-2 ml-4">
-                        <li>$w$ (waga) kontroluje <strong class="text-slate-200">nachylenie</strong> prostej,</li>
-                        <li>$b$ (bias / przesuniecie) kontroluje <strong class="text-slate-200">przeciecie z osia Y</strong>,</li>
-                        <li>$x$ to zmienna wejsciowa (cecha / feature).</li>
+                    <ul class="text-slate-400 space-y-2 ml-4 mb-4">
+                        <li>$Y$ – zmienna zależna (cel)</li>
+                        <li>$X_i$ – zmienne objaśniające (cechy np. powierzchnia, wiek)</li>
+                        <li>$\beta_i$ – parametry modelu (wagi przypisywane konkretnym cechom)</li>
+                        <li>$\varepsilon$ – składnik losowy (błędy)</li>
                     </ul>
-                    <p class="text-slate-300 leading-relaxed mt-4">
-                        Cel algorytmu: znalezc takie wartosci $w$ i $b$, zeby prosta jak najlepiej "lezala" wsrod punktow danych.
+                    <p class="text-slate-300 leading-relaxed font-semibold">
+                        Główne cele: predykcja wartości $Y$ na podstawie zbioru informacji oraz poprawne oszacowanie 
+                        prawdziwego wpływu konkretnej cechy przy ustalonej pozostałych (interpretacja efektów).
                     </p>
                 </div>
 
-                <!-- Po ludzku -->
                 <div class="human-box">
                     <p class="text-sm font-semibold text-purple mb-2">&#128161; Po ludzku:</p>
                     <p class="text-slate-300 leading-relaxed">
-                        Wyobraz sobie, ze masz rozrzucone punkty na kartce (np. cena mieszkania vs. jego powierzchnia).
-                        Regresja liniowa to po prostu <strong>linijka</strong>, ktora probujesz polozyc na tych punktach tak,
-                        zeby przechodzila jak najblizej kazdego z nich. Parametr $w$ to kat nachylenia linijki,
-                        a $b$ to miejsce, w ktorym dotyka osi pionowej.
+                        Wyobraź sobie, że chcesz oszacować <strong>wypłatę programisty</strong>. Użycie samego 
+                        lat doświadczenia da Ci kiepski obraz. Jeśli do modelu włożysz: lata stażu ($X_1$), 
+                        ilość języków($X_2$) i wielkość firmy ($X_3$) o wiele lepiej wycenisz rynek. Regresja 
+                        wieloraka mówi nam "jak dużo dodaje do pensji 1 rok doświadczenia, zakładając tę samą ilość języków".
                     </p>
                 </div>
 
-                <!-- Interactive: Line fitting -->
                 <div class="interactive-box mt-6">
-                    <h3 class="text-lg font-semibold text-purple mb-4">&#127912; Interakcja: Dopasuj prosta</h3>
+                    <h3 class="text-lg font-semibold text-purple mb-4">&#127912; Interakcja: Rola Zmiennych</h3>
                     <p class="text-sm text-slate-400 mb-4">
-                        Przesuwaj suwaki $w$ i $b$, aby zobaczyc, jak zmienia sie dopasowanie prostej do punktow danych.
+                        Zmień parametry dla cech w modelu wyceny mieszkań $Y = 50 + \beta_1(\text{Cechy1}) + \beta_2(\text{Cechy2})$. Zobacz jak każdy czynnik buduje ostateczną predykcję!
                     </p>
-                    <canvas id="lineCanvas" width="700" height="350" class="w-full bg-[#0c1222] mb-4"></canvas>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <div>
-                            <label class="text-sm text-slate-400 flex justify-between mb-2">
-                                <span>Waga $w$ (nachylenie)</span>
-                                <span class="text-accent font-mono" id="wValue">1.00</span>
-                            </label>
-                            <input type="range" id="wSlider" min="-3" max="5" step="0.05" value="1">
+                    
+                    <div class="h-64 flex flex-col justify-end gap-4 mb-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-24 text-right text-xs text-slate-400 font-mono">Baza ($\beta_0$)</div>
+                            <div class="h-6 bg-slate-700 rounded transition-all duration-300" style="width: 20%;"></div>
+                            <div class="text-xs font-bold text-slate-300">50k</div>
                         </div>
-                        <div>
-                            <label class="text-sm text-slate-400 flex justify-between mb-2">
-                                <span>Bias $b$ (przesuniecie)</span>
-                                <span class="text-accent font-mono" id="bValue">0.00</span>
-                            </label>
-                            <input type="range" id="bSlider" min="-5" max="5" step="0.1" value="0">
+                        <div class="flex items-center gap-4">
+                            <div class="w-24 text-right text-xs text-accent font-mono">Pokoje ($X_1$)</div>
+                            <div id="barX1" class="h-6 bg-accent rounded transition-all duration-300" style="width: 30%;"></div>
+                            <div class="text-xs font-bold text-accent" id="valX1">+?</div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-24 text-right text-xs text-purple font-mono">Lokalizacja ($X_2$)</div>
+                            <div id="barX2" class="h-6 bg-purple rounded transition-all duration-300" style="width: 10%;"></div>
+                            <div class="text-xs font-bold text-purple" id="valX2">+?</div>
+                        </div>
+                        <div class="w-full h-px bg-slate-700 my-2"></div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-24 text-right text-sm font-bold text-white">RAZEM (Y)</div>
+                            <div id="barTotal" class="h-8 bg-gradient-to-r from-accent to-purple rounded transition-all duration-300" style="width: 60%;"></div>
+                            <div class="text-xl font-black text-white" id="valTotal">?</div>
                         </div>
                     </div>
-                    <p class="text-center text-sm text-slate-500 mt-3">
-                        Aktualny koszt MSE: <span class="text-accent font-mono font-bold" id="mseDisplay">0.00</span>
-                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="text-sm text-slate-400 flex justify-between mb-2">
+                                <span>Ilość Pokoi (X1)</span>
+                                <span class="text-accent font-mono" id="sliderValX1">3</span>
+                            </label>
+                            <input type="range" id="inputX1" min="1" max="5" step="1" value="3" oninput="updateMultiReg()">
+                        </div>
+                        <div>
+                            <label class="text-sm text-slate-400 flex justify-between mb-2">
+                                <span>Centrum Wartość (X2)</span>
+                                <span class="text-purple font-mono" id="sliderValX2">8</span>
+                            </label>
+                            <input type="range" id="inputX2" min="1" max="10" step="1" value="8" oninput="updateMultiReg()">
+                        </div>
+                    </div>
                 </div>
             </section>
 
             <div class="section-divider"></div>
 
-            <!-- ============ SEKCJA 2: Funkcja kosztu MSE ============ -->
+            <!-- ============ SEKCJA 2 ============ -->
             <section id="sekcja2" class="mb-6 fade-up">
                 <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
                     <span class="text-accent font-mono text-lg">02</span>
-                    Funkcja kosztu (MSE)
+                    Wspólliniowośc i Współczynnik Pearsona
                 </h2>
 
-                <!-- Theory -->
                 <div class="theory-block mb-6">
                     <h3 class="text-lg font-semibold text-accent mb-4">Teoria</h3>
                     <p class="text-slate-300 leading-relaxed mb-4">
-                        Zeby ocenic, jak dobrze (lub zle) nasza prosta pasuje do danych, potrzebujemy
-                        <strong>funkcji kosztu</strong> (ang. cost function). Najczestsza jest
-                        <strong>MSE</strong> (Mean Squared Error, sredni blad kwadratowy):
+                        Gdy wprowadzamy wiele zmiennych do modelu ukrywa się ogromne ryzyko <strong>współliniowości (multicollinearity)</strong>.
+                        Występuje ona, gdy zmienne objaśniające są ze sobą bardzo silnie skorelowane. 
                     </p>
-                    <div class="text-center text-xl my-6">
-                        $$J(w, b) = \frac{1}{m} \sum_{i=1}^{m} \left( h_w(x_i) - y_i \right)^2$$
+                    <p class="text-slate-300 leading-relaxed mb-4">
+                        Silna korelacja ($|r| \to 1$) miernika Pearsona powoduje, że <strong>estymacja parametrów staje się skrajnie 
+                        niestabilna</strong> - model "nie wie", któremu czynnikowi przypisać zasługę za zmianę $Y$.
+                    </p>
+                    <div class="flex items-center gap-4 text-sm text-slate-400 mb-4 bg-deep/50 p-4 rounded border border-slate-700">
+                        <svg class="w-6 h-6 text-warning flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        <span>Przed budową modelu zawsze: <strong>1. Oblicz macierz korelacji (Pearson)</strong> i <strong>2. Sprawdź współliniowość</strong> (VIF score).</span>
                     </div>
-                    <p class="text-slate-300 leading-relaxed mb-2">gdzie:</p>
-                    <ul class="text-slate-400 space-y-2 ml-4">
-                        <li>$m$ to liczba przykladow treningowych,</li>
-                        <li>$h_w(x_i)$ to predykcja dla $i$-tego przykladu,</li>
-                        <li>$y_i$ to prawdziwa wartosc dla $i$-tego przykladu,</li>
-                        <li>$(h_w(x_i) - y_i)^2$ to kwadrat bledu (odleglosci) dla pojedynczego punktu.</li>
-                    </ul>
-                    <p class="text-slate-300 leading-relaxed mt-4">
-                        Im mniejsza wartosc $J(w,b)$, tym lepsza prosta. Idealny model ma $J = 0$.
-                    </p>
                 </div>
 
-                <!-- Po ludzku -->
                 <div class="human-box">
                     <p class="text-sm font-semibold text-purple mb-2">&#128161; Po ludzku:</p>
                     <p class="text-slate-300 leading-relaxed">
-                        MSE to po prostu "srednia odleglosc" (podniesiona do kwadratu) miedzy Twoja prosta
-                        a prawdziwymi punktami. Podnosimy do kwadratu, zeby kary za duze bledy byly
-                        proporcjonalnie wieksze. Pomysl o tym jak o <strong>"ile srednio prosta mija sie z prawda"</strong>.
+                        Wyobraź sobie, że dwaj pracownicy, Jan i Paweł, zawsze pracują razem. Zawsze! Kiedy dom jest 
+                        pomalowany szybko (dobry wynik Y), kogo uważać za lepszego pracownika? Model nie potrafi tego orzec,
+                        bo ich praca nakłada się na siebie w 100%. Musisz wyrzucić jednego z nich z projektu.
                     </p>
                 </div>
 
-                <!-- Interactive: MSE parabola -->
                 <div class="interactive-box mt-6">
-                    <h3 class="text-lg font-semibold text-purple mb-4">&#128200; Interakcja: Wykres kosztu MSE</h3>
+                    <h3 class="text-lg font-semibold text-purple mb-4">&#128200; Interakcja: Korelacja Pearsona</h3>
                     <p class="text-sm text-slate-400 mb-4">
-                        Ponizszy wykres pokazuje wartosc funkcji kosztu $J(w)$ dla roznych wartosci $w$
-                        (przy stalym $b$). Czerwony punkt wskazuje aktualny koszt, kontrolowany suwakiem z Sekcji 1.
+                        Ustaw korelacje między cechą $X_1$ a cechą $X_2$. Zobacz jak silna, liniowa zależność spłaszcza chmurę punktów!
                     </p>
-                    <div class="max-w-lg mx-auto">
-                        <canvas id="mseChart" height="280"></canvas>
+                    <div class="relative w-full h-80 bg-[#0c1222] rounded-xl overflow-hidden border border-slate-800 mb-6">
+                        <canvas id="colinearityCanvas" class="absolute w-full h-full"></canvas>
+                        <div id="colinearityAlert" class="absolute inset-0 bg-red-900/80 backdrop-blur-sm flex items-center justify-center opacity-0 transition-opacity duration-300 pointer-events-none">
+                            <div class="text-center">
+                                <p class="text-4xl">🚨</p>
+                                <p class="text-white font-bold text-xl mt-2 tracking-widest">ALARM WSPÓŁLINIOWOŚCI</p>
+                                <p class="text-red-200 text-sm mt-1">Model zwariuje! Usuń jedną z cech.</p>
+                            </div>
+                        </div>
                     </div>
-                    <p class="text-center text-xs text-slate-500 mt-3">
-                        Przesun suwak $w$ w Sekcji 1, aby zobaczyc, jak punkt przesuwa sie po paraboli kosztu.
+
+                    <div class="mb-4">
+                        <label class="text-sm text-slate-400 flex justify-between mb-2">
+                            <span>Współczynnik Pearsona $r$</span>
+                            <span class="text-accent font-mono" id="pearsonVal">0.00</span>
+                        </label>
+                        <input type="range" id="pearsonSlider" min="-0.99" max="0.99" step="0.01" value="0" oninput="drawColinearity()">
+                        <div class="flex justify-between text-xs text-slate-500 mt-2">
+                            <span>Silnie ujemna (-1)</span>
+                            <span>Brak (0)</span>
+                            <span>Silnie dodatnia (1)</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="section-divider"></div>
+
+            <!-- ============ SEKCJA 3 ============ -->
+            <section id="sekcja3" class="mb-6 fade-up">
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+                    <span class="text-accent font-mono text-lg">03</span>
+                    R Kwadrat Skorygowane
+                </h2>
+
+                <div class="theory-block mb-6">
+                    <h3 class="text-lg font-semibold text-accent mb-4">Teoria</h3>
+                    <p class="text-slate-300 leading-relaxed mb-4">
+                        <strong>R kwadrat ($R^2$)</strong> mówi nam jaki procent wariancji zmiennej Y jest tłumaczony przez model.
+                        Niestety ma ogromną wadę: z każdą nową dodaną zmienną (X), $R^2$ zawsze rośnie lub zostaje w miejscu, nawet
+                        jeśli cecha to zupełny szum!
                     </p>
+                    <p class="text-slate-300 leading-relaxed mb-4">
+                        Aby ratować się przed dodawaniem bzdurnych informacji, potrzebujemy <strong>Dostosowanego współczynnika determinacji (Adjusted $R^2$)</strong>.
+                    </p>
+                    <div class="text-center text-xl my-6">
+                        $$R^2_{adj} = 1 - \left( \frac{(1 - R^2)(n - 1)}{n - k - 1} \right)$$
+                    </div>
+                    <ul class="text-slate-400 space-y-2 ml-4 mb-4 text-sm">
+                        <li>$n$ = liczba obserwacji (wierszy w excelu)</li>
+                        <li>$k$ = liczba dodanych zmiennych predykcyjnych (kolumn)</li>
+                    </ul>
+                    <p class="text-slate-300 leading-relaxed">
+                        Zwróć uwagę na mianownik: im większe $k$, tym mocniej algorytm "karany" jest za dodawanie zmiennych 
+                        nie wnoszących wyraźnej wartości do $R^2$. Zawsze porównuj modele oceniając model zredukowany vs model pełny.
+                    </p>
+                </div>
+
+                <div class="interactive-box mt-6">
+                    <h3 class="text-lg font-semibold text-purple mb-4">&#128640; Symulacja: Pomiary Jakości</h3>
+                    <p class="text-sm text-slate-400 mb-4">
+                        W modelowaniu zawsze testuj czy po tzw. <strong>redukcji</strong> (usunięciu błahych cech)  model jest lepszy.
+                        Naciskaj na przyciski poniżej i obserwuj metrykę adjusted.
+                    </p>
+                    
+                    <div class="flex gap-4 max-w-sm mb-6">
+                        <button class="sim-btn flex-1" onclick="addGoodFeature()">+ Istotna Cecha</button>
+                        <button class="sim-btn-outline flex-1" onclick="addNoiseFeature()">+ Cecha Szum</button>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <div class="w-32 text-slate-300 font-mono text-sm">Zwykłe R²</div>
+                            <div class="flex-1 bg-slate-800 h-6 rounded-full overflow-hidden border border-slate-600">
+                                <div id="r2Bar" class="h-full bg-accent transition-all duration-500" style="width: 20%;"></div>
+                            </div>
+                            <div class="w-20 text-right text-accent font-bold" id="r2Val">0.20</div>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-32 text-slate-300 font-mono text-sm relative">
+                                Adjusted R² 
+                                <span class="absolute -top-1 -right-2 w-2 h-2 rounded-full bg-warning"></span>
+                            </div>
+                            <div class="flex-1 bg-slate-800 h-6 rounded-full overflow-hidden border border-slate-600">
+                                <div id="adjR2Bar" class="h-full bg-purple transition-all duration-500" style="width: 15%;"></div>
+                            </div>
+                            <div class="w-20 text-right text-purple font-bold" id="adjR2Val">0.15</div>
+                        </div>
+                    </div>
+                    
+                    <p class="text-xs text-slate-500 mt-4 text-center">
+                        Cecha szum nadal zwiększa zwykłe R². Ale Adj R² od razu reaguje spadkiem, bo nakłada <strong>kare</strong> za używanie bezwartościowych śmieci.
+                    </p>
+                    
                 </div>
             </section>
 
@@ -345,84 +367,52 @@
             <!-- ============ QUIZ ============ -->
             <section id="quiz" class="fade-up">
                 <h2 class="text-2xl font-bold mb-2 flex items-center gap-3">
-                    &#127891; Sprawdz swoja wiedze
+                    &#127891; Sprawdz swoja wiedze z zadań
                 </h2>
-                <p class="text-slate-400 mb-8">Odpowiedz na pytania, aby sprawdzic, czy dobrze rozumiesz regresje liniowa.</p>
+                <p class="text-slate-400 mb-8">Pytania oparte na typowych problemach z budowania modeli (tzw. pełny vs zredukowany).</p>
 
-                <!-- Q1 -->
                 <div class="mb-8" id="q1-block">
                     <p class="font-semibold text-slate-200 mb-3">
-                        1. Co kontroluje parametr $w$ w rownaniu $h(x) = wx + b$?
+                        1. Przed budowaniem modelu, jak sprawdzisz czy istnieje niebezpieczna współliniowość?
                     </p>
                     <div class="space-y-2">
                         <div class="quiz-option" onclick="checkAnswer('q1','A',this)" data-q="q1">
-                            <span class="text-accent font-mono mr-2">A.</span> Przesuniecie prostej wzdluz osi Y
+                            <span class="text-accent font-mono mr-2">A.</span> Licząc macierz korelacji Pearsona pomiędzy cechami X
                         </div>
                         <div class="quiz-option" onclick="checkAnswer('q1','B',this)" data-q="q1">
-                            <span class="text-accent font-mono mr-2">B.</span> Nachylenie (kat) prostej
+                            <span class="text-accent font-mono mr-2">B.</span> Tworząc oddzielnie R kwadrat dla Y i każdej cechy
                         </div>
                         <div class="quiz-option" onclick="checkAnswer('q1','C',this)" data-q="q1">
-                            <span class="text-accent font-mono mr-2">C.</span> Liczbe punktow treningowych
-                        </div>
-                        <div class="quiz-option" onclick="checkAnswer('q1','D',this)" data-q="q1">
-                            <span class="text-accent font-mono mr-2">D.</span> Wartosc funkcji kosztu
+                            <span class="text-accent font-mono mr-2">C.</span> Obliczając predykcje z losowymi wagami
                         </div>
                     </div>
                     <div id="q1-feedback" class="mt-3 text-sm hidden"></div>
                 </div>
 
-                <!-- Q2 -->
                 <div class="mb-8" id="q2-block">
                     <p class="font-semibold text-slate-200 mb-3">
-                        2. Co sie stanie z wartoscia MSE, gdy prosta idealnie przejdzie przez wszystkie punkty?
+                        2. Masz model "pełny" w którym $R_{adj}^2 = 0.60$. Po usunięciu 2 cech $R^2$ nieco spada, ale $R_{adj}^2$ rośnie do $0.65$. Jaki jest wyrok?
                     </p>
                     <div class="space-y-2">
                         <div class="quiz-option" onclick="checkAnswer('q2','A',this)" data-q="q2">
-                            <span class="text-accent font-mono mr-2">A.</span> MSE bedzie rowne 1
+                            <span class="text-accent font-mono mr-2">A.</span> Trzeba używać pełnego, bo R^2 zawsze mówi prawdę.
                         </div>
                         <div class="quiz-option" onclick="checkAnswer('q2','B',this)" data-q="q2">
-                            <span class="text-accent font-mono mr-2">B.</span> MSE bedzie rowne 0
+                            <span class="text-accent font-mono mr-2">B.</span> Model zredukowany jest ZDECYDOWANIE lepszy, odrzuciliśmy szum wprowadzający niepewność.
                         </div>
                         <div class="quiz-option" onclick="checkAnswer('q2','C',this)" data-q="q2">
-                            <span class="text-accent font-mono mr-2">C.</span> MSE bedzie ujemne
-                        </div>
-                        <div class="quiz-option" onclick="checkAnswer('q2','D',this)" data-q="q2">
-                            <span class="text-accent font-mono mr-2">D.</span> MSE bedzie nieskonczone
+                            <span class="text-accent font-mono mr-2">C.</span> Trzeba wyrzucić jeszcze połowę wierszy.
                         </div>
                     </div>
                     <div id="q2-feedback" class="mt-3 text-sm hidden"></div>
                 </div>
-
-                <!-- Q3 -->
-                <div class="mb-8" id="q3-block">
-                    <p class="font-semibold text-slate-200 mb-3">
-                        3. Dlaczego w MSE bledy sa podnoszone do kwadratu?
-                    </p>
-                    <div class="space-y-2">
-                        <div class="quiz-option" onclick="checkAnswer('q3','A',this)" data-q="q3">
-                            <span class="text-accent font-mono mr-2">A.</span> Zeby bledy ujemne i dodatnie sie nie znosity oraz zeby karac duze odchylenia
-                        </div>
-                        <div class="quiz-option" onclick="checkAnswer('q3','B',this)" data-q="q3">
-                            <span class="text-accent font-mono mr-2">B.</span> Zeby wynik byl zawsze ujemny
-                        </div>
-                        <div class="quiz-option" onclick="checkAnswer('q3','C',this)" data-q="q3">
-                            <span class="text-accent font-mono mr-2">C.</span> Zeby zmniejszyc czas obliczen
-                        </div>
-                        <div class="quiz-option" onclick="checkAnswer('q3','D',this)" data-q="q3">
-                            <span class="text-accent font-mono mr-2">D.</span> Jest to wymog matematyczny bez praktycznego znaczenia
-                        </div>
-                    </div>
-                    <div id="q3-feedback" class="mt-3 text-sm hidden"></div>
-                </div>
             </section>
 
-            <!-- Lesson navigation -->
             <div class="flex justify-between items-center mt-12 pt-8 border-t border-slate-800">
                 <a href="index.html" class="text-sm text-slate-400 hover:text-accent transition-colors">&#8592; Strona glowna</a>
-                <a href="lekcja2.html" class="text-sm font-medium text-accent hover:text-purple transition-colors">Lekcja 2: Gradient Descent &#10132;</a>
+                <a href="lekcja2.html" class="text-sm font-medium text-accent hover:text-purple transition-colors">Lekcja 2: Trendy i Sezonowosc &#10132;</a>
             </div>
 
-            <!-- Footer -->
             <footer class="mt-12 pt-8 border-t border-slate-800 text-center text-sm text-slate-500">
                 <a href="https://github.com/recytator/" class="hover:text-accent transition-colors">Wykonanie: Milosz Prusinowski</a>
             </footer>
@@ -430,204 +420,134 @@
     </div>
 
     <script>
-    // ========= DATA =========
-    const dataPoints = [
-        {x: 1, y: 2.2}, {x: 1.5, y: 3.1}, {x: 2, y: 3.8},
-        {x: 2.5, y: 4.2}, {x: 3, y: 5.5}, {x: 3.5, y: 5.8},
-        {x: 4, y: 7.1}, {x: 4.5, y: 7.6}, {x: 5, y: 8.9},
-        {x: 5.5, y: 9.2}, {x: 6, y: 10.5}
-    ];
+    // ========= INTERAKCJA 1: Regresja Wieloraka =========
+    function updateMultiReg() {
+        const x1 = parseFloat(document.getElementById('inputX1').value);
+        const x2 = parseFloat(document.getElementById('inputX2').value);
+        document.getElementById('sliderValX1').textContent = x1;
+        document.getElementById('sliderValX2').textContent = x2;
+        
+        const beta0 = 50;
+        const beta1 = 15;
+        const beta2 = 8;
+        
+        const impactX1 = beta1 * x1;
+        const impactX2 = beta2 * x2;
+        const total = beta0 + impactX1 + impactX2;
+        
+        // Pomiary wizualne (max około 200k)
+        const maxWidth = 200;
+        document.getElementById('barX1').style.width = Math.min((impactX1 / maxWidth) * 100, 100) + '%';
+        document.getElementById('barX2').style.width = Math.min((impactX2 / maxWidth) * 100, 100) + '%';
+        document.getElementById('barTotal').style.width = Math.min((total / maxWidth) * 100, 100) + '%';
+        
+        document.getElementById('valX1').textContent = `+${impactX1}k`;
+        document.getElementById('valX2').textContent = `+${impactX2}k`;
+        document.getElementById('valTotal').textContent = `${total}k`;
+    }
+    updateMultiReg();
 
-    // ========= LINE CANVAS =========
-    const lineCanvas = document.getElementById('lineCanvas');
-    const ctx = lineCanvas.getContext('2d');
-    const wSlider = document.getElementById('wSlider');
-    const bSlider = document.getElementById('bSlider');
-    const wValue = document.getElementById('wValue');
-    const bValue = document.getElementById('bValue');
-    const mseDisplay = document.getElementById('mseDisplay');
-
-    // Canvas scaling
-    function resizeCanvas() {
-        const rect = lineCanvas.parentElement.getBoundingClientRect();
-        lineCanvas.width = rect.width;
-        lineCanvas.height = 350;
+    // ========= INTERAKCJA 2: Współliniowość =========
+    const colCanvas = document.getElementById('colinearityCanvas');
+    const cCtx = colCanvas.getContext('2d');
+    let points = [];
+    
+    function generatePoints(r) {
+        points = [];
+        const n = 100;
+        for(let i=0; i < n; i++) {
+            // Generujemy punkty skorelowane
+            const u = Math.random() * 2 - 1; // Unikalna fluktuacja główna
+            const v = Math.random() * 2 - 1; // Szum
+            // korelacja r 
+            const x = r * u + Math.sqrt(1 - r*r) * v; 
+            const y = u;
+            // mapowanie do obszaru canvas: -2.5 to 2.5
+            points.push({x: x, y: y});
+        }
     }
 
-    function mapX(x) { return 50 + (x / 7) * (lineCanvas.width - 100); }
-    function mapY(y) { return lineCanvas.height - 40 - (y / 14) * (lineCanvas.height - 80); }
-
-    function calculateMSE(w, b) {
-        let sum = 0;
-        dataPoints.forEach(p => { const err = (w * p.x + b) - p.y; sum += err * err; });
-        return sum / dataPoints.length;
-    }
-
-    function drawLine() {
-        resizeCanvas();
-        const w = parseFloat(wSlider.value);
-        const b = parseFloat(bSlider.value);
-        wValue.textContent = w.toFixed(2);
-        bValue.textContent = b.toFixed(2);
-
-        ctx.clearRect(0, 0, lineCanvas.width, lineCanvas.height);
-
-        // Grid
-        ctx.strokeStyle = 'rgba(56,189,248,0.06)';
-        ctx.lineWidth = 1;
-        for(let i = 0; i <= 7; i++) {
-            const x = mapX(i);
-            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, lineCanvas.height); ctx.stroke();
-        }
-        for(let i = 0; i <= 14; i++) {
-            const y = mapY(i);
-            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(lineCanvas.width, y); ctx.stroke();
-        }
-
-        // Axis labels
-        ctx.fillStyle = '#475569';
-        ctx.font = '11px Inter';
-        ctx.textAlign = 'center';
-        for(let i = 0; i <= 7; i++) ctx.fillText(i, mapX(i), lineCanvas.height - 10);
-        ctx.textAlign = 'right';
-        for(let i = 0; i <= 14; i += 2) ctx.fillText(i, 40, mapY(i) + 4);
-
-        // Error lines (whiskers)
-        dataPoints.forEach(p => {
-            const pred = w * p.x + b;
-            ctx.strokeStyle = 'rgba(239,68,68,0.35)';
-            ctx.lineWidth = 1.5;
-            ctx.setLineDash([4, 3]);
-            ctx.beginPath();
-            ctx.moveTo(mapX(p.x), mapY(p.y));
-            ctx.lineTo(mapX(p.x), mapY(pred));
-            ctx.stroke();
-            ctx.setLineDash([]);
+    function drawColinearity() {
+        const rect = colCanvas.parentElement.getBoundingClientRect();
+        colCanvas.width = rect.width;
+        colCanvas.height = rect.height;
+        
+        const r = parseFloat(document.getElementById('pearsonSlider').value);
+        document.getElementById('pearsonVal').textContent = r.toFixed(2);
+        
+        generatePoints(r);
+        cCtx.clearRect(0,0, colCanvas.width, colCanvas.height);
+        
+        const w = colCanvas.width;
+        const h = colCanvas.height;
+        
+        // Rysuj grid
+        cCtx.strokeStyle = 'rgba(255,255,255,0.05)';
+        cCtx.lineWidth = 1;
+        cCtx.beginPath();
+        cCtx.moveTo(w/2, 0); cCtx.lineTo(w/2, h);
+        cCtx.moveTo(0, h/2); cCtx.lineTo(w, h/2);
+        cCtx.stroke();
+        
+        // Rysuj punkty
+        points.forEach(p => {
+            const px = (p.x / 3) * (w/2) + w/2;
+            const py = -(p.y / 3) * (h/2) + h/2;
+            cCtx.beginPath();
+            cCtx.arc(px, py, 4, 0, Math.PI*2);
+            cCtx.fillStyle = '#38bdf8';
+            cCtx.fill();
         });
 
-        // Regression line
-        const x0 = 0, x1 = 7;
-        ctx.strokeStyle = '#38bdf8';
-        ctx.lineWidth = 2.5;
-        ctx.shadowColor = '#38bdf8';
-        ctx.shadowBlur = 8;
-        ctx.beginPath();
-        ctx.moveTo(mapX(x0), mapY(w * x0 + b));
-        ctx.lineTo(mapX(x1), mapY(w * x1 + b));
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-
-        // Data points
-        dataPoints.forEach(p => {
-            ctx.beginPath();
-            ctx.arc(mapX(p.x), mapY(p.y), 6, 0, Math.PI * 2);
-            ctx.fillStyle = '#818cf8';
-            ctx.shadowColor = '#818cf8';
-            ctx.shadowBlur = 6;
-            ctx.fill();
-            ctx.shadowBlur = 0;
-            ctx.strokeStyle = '#c7d2fe';
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-        });
-
-        // MSE
-        const mse = calculateMSE(w, b);
-        mseDisplay.textContent = mse.toFixed(4);
-
-        // Update MSE chart
-        updateMSEChart(w, mse);
-    }
-
-    wSlider.addEventListener('input', drawLine);
-    bSlider.addEventListener('input', drawLine);
-
-    // ========= MSE CHART =========
-    const mseCtx = document.getElementById('mseChart').getContext('2d');
-
-    // Generate MSE curve for w from -3 to 5, with current b
-    function getMSECurve() {
-        const b = parseFloat(bSlider.value);
-        const labels = [];
-        const values = [];
-        for(let w = -3; w <= 5; w += 0.1) {
-            labels.push(w.toFixed(1));
-            values.push(calculateMSE(w, b));
+        const alertBox = document.getElementById('colinearityAlert');
+        if(Math.abs(r) > 0.90) {
+            alertBox.classList.remove('opacity-0');
+        } else {
+            alertBox.classList.add('opacity-0');
         }
-        return { labels, values };
     }
+    window.addEventListener('resize', drawColinearity);
+    setTimeout(drawColinearity, 100);
 
-    const curveData = getMSECurve();
-    const mseChart = new Chart(mseCtx, {
-        type: 'line',
-        data: {
-            labels: curveData.labels,
-            datasets: [
-                {
-                    label: 'J(w)',
-                    data: curveData.values,
-                    borderColor: 'rgba(56,189,248,0.7)',
-                    backgroundColor: 'rgba(56,189,248,0.05)',
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 0,
-                    borderWidth: 2
-                },
-                {
-                    label: 'Aktualny koszt',
-                    data: [],
-                    borderColor: '#ef4444',
-                    backgroundColor: '#ef4444',
-                    pointRadius: 8,
-                    pointHoverRadius: 10,
-                    showLine: false
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { display: false },
-                tooltip: { enabled: true }
-            },
-            scales: {
-                x: {
-                    title: { display: true, text: 'w', color: '#94a3b8', font: { size: 13 } },
-                    ticks: { color: '#64748b', maxTicksLimit: 10, font: { size: 11 } },
-                    grid: { color: 'rgba(56,189,248,0.06)' }
-                },
-                y: {
-                    title: { display: true, text: 'J(w)', color: '#94a3b8', font: { size: 13 } },
-                    ticks: { color: '#64748b', font: { size: 11 } },
-                    grid: { color: 'rgba(56,189,248,0.06)' },
-                    min: 0
-                }
-            }
+    // ========= INTERAKCJA 3: R2 vs Adj R2 =========
+    let currK = 1;
+    let currN = 50;
+    let currR2 = 0.20;
+    
+    function calcAdjR2(r2, n, k) {
+        return 1 - ((1 - r2) * (n - 1)) / (n - k - 1);
+    }
+    
+    function updateBarsR2() {
+        const adj = calcAdjR2(currR2, currN, currK);
+        document.getElementById('r2Bar').style.width = (currR2 * 100) + '%';
+        document.getElementById('adjR2Bar').style.width = Math.max(0, (adj * 100)) + '%';
+        
+        document.getElementById('r2Val').textContent = currR2.toFixed(3);
+        document.getElementById('adjR2Val').textContent = Math.max(0, adj).toFixed(3);
+        
+        if (currK > 15) {
+            alert("Model jest zapchany cechami. Użyj wiedzy domenowej żeby usunąć nadmiar.");
+            currK = 1; currR2 = 0.20; updateBarsR2();
         }
-    });
-
-    function updateMSEChart(w, mse) {
-        // Regenerate curve with current b
-        const curve = getMSECurve();
-        mseChart.data.labels = curve.labels;
-        mseChart.data.datasets[0].data = curve.values;
-
-        // Find closest index for current w
-        const idx = Math.round((w + 3) / 0.1);
-        const pointData = new Array(curve.labels.length).fill(null);
-        if(idx >= 0 && idx < pointData.length) pointData[idx] = mse;
-        mseChart.data.datasets[1].data = pointData;
-        mseChart.update('none');
     }
+    
+    function addGoodFeature() {
+        currK++;
+        currR2 += 0.15; // Duży skok błędu
+        if(currR2 > 0.98) currR2 = 0.98;
+        updateBarsR2();
+    }
+    
+    function addNoiseFeature() {
+        currK++;
+        currR2 += 0.01; // Szum lekko udaje, że poprawia R2
+        updateBarsR2();
+    }
+    updateBarsR2();
 
     // ========= QUIZ =========
-    const answers = { q1: 'B', q2: 'B', q3: 'A' };
-    const explanations = {
-        q1: 'Parametr $w$ to waga, ktora kontroluje nachylenie prostej. Im wieksze $w$, tym bardziej stroma prosta.',
-        q2: 'Gdy prosta przechodzi dokladnie przez wszystkie punkty, kazdy blad $(h(x_i) - y_i)$ wynosi 0, wiec MSE = 0.',
-        q3: 'Podnoszenie do kwadratu eliminuje znaki (bledy ujemne i dodatnie sie nie skracaja) oraz mocniej karze duze odchylenia.'
-    };
-
+    const answers = { q1: 'A', q2: 'B' };
     function checkAnswer(qId, selected, el) {
         const allOptions = document.querySelectorAll(`[data-q="${qId}"]`);
         if(el.classList.contains('disabled')) return;
@@ -642,15 +562,13 @@
         const fb = document.getElementById(qId + '-feedback');
         fb.classList.remove('hidden');
         if(selected === answers[qId]) {
-            fb.innerHTML = '<span class="text-green-400">&#10004; Poprawna odpowiedz!</span> ' + explanations[qId];
+            fb.innerHTML = '<span class="text-green-400">&#10004; Znakomicie!</span>';
         } else {
-            fb.innerHTML = '<span class="text-red-400">&#10008; Niepoprawnie.</span> ' + explanations[qId];
+            fb.innerHTML = '<span class="text-red-400">&#10008; Przemyśl to jeszcze raz.</span>';
         }
-        // Re-render MathJax in feedback
-        if(window.MathJax) MathJax.typesetPromise([fb]);
     }
-
-    // ========= SCROLL SPY (Sidebar) =========
+    
+    // Zwykły Scrollspy i FadeObserver
     const sections = document.querySelectorAll('section[id]');
     const sidebarLinks = document.querySelectorAll('.sidebar-link');
 
@@ -666,21 +584,11 @@
         });
     });
 
-    // ========= FADE-UP on scroll =========
     const fadeEls = document.querySelectorAll('.fade-up');
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
     }, { threshold: 0.1 });
     fadeEls.forEach(el => observer.observe(el));
-
-    // ========= MOBILE MENU =========
-    document.getElementById('menuBtn').addEventListener('click', () => {
-        document.getElementById('mobileMenu').classList.toggle('hidden');
-    });
-
-    // ========= INIT =========
-    window.addEventListener('load', drawLine);
-    window.addEventListener('resize', drawLine);
     </script>
 </body>
 </html>

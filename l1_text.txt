@@ -1,0 +1,48 @@
+--- PAGE 1 ---
+Regresja wieloraka, współliniowość, R kwadrat skorygowany
+
+--- PAGE 2 ---
+2
+Regresja wieloraka (Multiple Regression)R
+Y=β0+β1X1+β2X2+⋯+βkXk+ε
+Gdzie:
+● T – zmienna zależna
+● X1,X2,,...,Xk – zmienne objaśniając
+● βi – parametry modelu
+● ε – składnik losowy
+Cel:
+● oszacowanie wpływu wielu zmiennych jednocześnie
+● predykcja wartości Y
+● interpretacja efektów cząstkowych
+--- PAGE 3 ---
+3
+Współliniowość i miernik (Pearson)
+➔ Współliniowość:
+◆ występuje, gdy zmienne X ą silnie 
+skorelowane
+◆ powoduje niestabilność estymacji
+➔ Współczynnik korelacji Pearsona:
+
+--- PAGE 4 ---
+4
+Dostosowany współczynnik determinacji
+
+--- PAGE 5 ---
+5
+Zadanie
+1. Oblicz macierz korelacji (Pearson)
+2. Sprawdź współliniowość
+3. Zbuduj model regresji
+4. Oblicz:
+○ R kwadrat
+○ R kwadrat skorygowane
+5. Porównaj modele (pełny vs zredukowany)
+Pytania:
+● Które zmienne są istotne?
+● Czy występuje współliniowość?
+● Czy model po redukcji jest lepszy?
+
+--- PAGE 6 ---
+6
+Dziękuję za uwagę
+

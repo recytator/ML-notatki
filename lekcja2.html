@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lekcja 2 - Gradient Descent | ML Portal</title>
-    <meta name="description" content="Gradient Descent: intuicja pochodnej, learning rate, zbieznosc i overshooting. Interaktywne wizualizacje i quiz.">
+    <title>Lekcja 2 - Trendy i Sezonowość | ML Portal</title>
+    <meta name="description" content="Szeregi czasowe, trendy, sezonowosc, wygładzanie wykładnicze ETS.">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -15,12 +15,14 @@
                         card: '#1e293b',
                         accent: '#38bdf8',
                         purple: '#818cf8',
+                        greenish: '#10b981',
                     }
                 }
             }
         }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         MathJax = {
             tex: { inlineMath: [['$','$'], ['\\(','\\)']], displayMath: [['$$','$$'], ['\\[','\\]']] },
@@ -37,126 +39,33 @@
                 linear-gradient(90deg, rgba(56,189,248,0.03) 1px, transparent 1px);
             background-size: 60px 60px;
         }
-        nav {
-            backdrop-filter: blur(16px);
-            background: rgba(15,23,42,0.85);
-            border-bottom: 1px solid rgba(56,189,248,0.08);
-        }
-        .sidebar-link {
-            border-left: 3px solid transparent;
-            padding: 8px 16px;
-            font-size: 0.85rem;
-            color: #94a3b8;
-            transition: all 0.2s ease;
-            display: block;
-        }
+        nav { backdrop-filter: blur(16px); background: rgba(15,23,42,0.85); border-bottom: 1px solid rgba(56,189,248,0.08); }
+        .sidebar-link { border-left: 3px solid transparent; padding: 8px 16px; font-size: 0.85rem; color: #94a3b8; transition: all 0.2s ease; display: block; }
         .sidebar-link:hover { color: #e2e8f0; border-color: #334155; }
-        .sidebar-link.active {
-            color: #38bdf8;
-            border-color: #38bdf8;
-            background: rgba(56,189,248,0.05);
-        }
-        .theory-block {
-            background: rgba(30,41,59,0.5);
-            border: 1px solid rgba(56,189,248,0.08);
-            border-radius: 16px;
-            padding: 2rem;
-        }
-        .human-box {
-            background: rgba(30,41,59,0.7);
-            border-left: 4px solid #818cf8;
-            border-radius: 0 12px 12px 0;
-            padding: 1.25rem 1.5rem;
-            margin: 1.5rem 0;
-        }
-        .interactive-box {
-            background: rgba(15,23,42,0.8);
-            border: 1px solid rgba(129,140,248,0.12);
-            border-radius: 16px;
-            padding: 2rem;
-        }
-        input[type="range"] {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 6px;
-            border-radius: 3px;
-            background: #334155;
-            outline: none;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 20px; height: 20px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #38bdf8, #818cf8);
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(56,189,248,0.4);
-        }
-        input[type="range"]::-moz-range-thumb {
-            width: 20px; height: 20px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #38bdf8, #818cf8);
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 0 10px rgba(56,189,248,0.4);
-        }
-        .quiz-option {
-            background: rgba(30,41,59,0.5);
-            border: 1px solid #334155;
-            border-radius: 12px;
-            padding: 12px 18px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .quiz-option:hover { border-color: #38bdf8; background: rgba(56,189,248,0.05); }
-        .quiz-option.correct { border-color: #22c55e; background: rgba(34,197,94,0.1); }
+        .sidebar-link.active { color: #818cf8; border-color: #818cf8; background: rgba(129,140,248,0.05); }
+        .theory-block { background: rgba(30,41,59,0.5); border: 1px solid rgba(129,140,248,0.08); border-radius: 16px; padding: 2rem; }
+        .human-box { background: rgba(30,41,59,0.7); border-left: 4px solid #38bdf8; border-radius: 0 12px 12px 0; padding: 1.25rem 1.5rem; margin: 1.5rem 0; }
+        .interactive-box { background: rgba(15,23,42,0.8); border: 1px solid rgba(56,189,248,0.12); border-radius: 16px; padding: 2rem; }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #334155; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, #818cf8, #38bdf8); cursor: pointer; box-shadow: 0 0 10px rgba(129,140,248,0.4); }
+        input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, #818cf8, #38bdf8); cursor: pointer; border: none; box-shadow: 0 0 10px rgba(129,140,248,0.4); }
+        .quiz-option { background: rgba(30,41,59,0.5); border: 1px solid #334155; border-radius: 12px; padding: 12px 18px; cursor: pointer; transition: all 0.3s ease; }
+        .quiz-option:hover { border-color: #818cf8; background: rgba(129,140,248,0.05); }
+        .quiz-option.correct { border-color: #10b981; background: rgba(16,185,129,0.1); }
         .quiz-option.wrong { border-color: #ef4444; background: rgba(239,68,68,0.1); }
         .quiz-option.disabled { pointer-events: none; opacity: 0.7; }
         canvas { border-radius: 12px; }
-        .section-divider {
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(56,189,248,0.2), rgba(129,140,248,0.2), transparent);
-            margin: 3rem 0;
-        }
+        .section-divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(129,140,248,0.2), rgba(56,189,248,0.2), transparent); margin: 3rem 0; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #475569; }
-        .fade-up {
-            opacity: 0; transform: translateY(30px);
-            transition: opacity 0.6s ease, transform 0.6s ease;
-        }
+        .fade-up { opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease, transform 0.6s ease; }
         .fade-up.visible { opacity: 1; transform: translateY(0); }
-        /* Buttons */
-        .sim-btn {
-            background: linear-gradient(135deg, #38bdf8, #818cf8);
-            color: white;
-            padding: 10px 24px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .sim-btn:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(56,189,248,0.3); }
-        .sim-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        .sim-btn-outline {
-            background: transparent;
-            border: 1px solid #38bdf8;
-            color: #38bdf8;
-            padding: 10px 24px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .sim-btn-outline:hover { background: rgba(56,189,248,0.1); }
     </style>
 </head>
 <body class="grid-bg">
 
-    <!-- Navbar -->
     <nav class="fixed top-0 left-0 right-0 z-50 px-6 py-4">
         <div class="max-w-6xl mx-auto flex items-center justify-between">
             <a href="index.html" class="flex items-center gap-3 group">
@@ -175,12 +84,12 @@
                     <line x1="50" y1="50" x2="80" y2="50" stroke="#818cf8" stroke-width="1" opacity="0.3"/>
                     <line x1="50" y1="80" x2="80" y2="50" stroke="#38bdf8" stroke-width="1" opacity="0.3"/>
                 </svg>
-                <span class="text-lg font-bold text-slate-200 group-hover:text-accent transition-colors">ML Portal</span>
+                <span class="text-lg font-bold text-slate-200 group-hover:text-purple transition-colors">ML Portal</span>
             </a>
             <div class="hidden md:flex items-center gap-6 text-sm text-slate-400">
-                <a href="index.html" class="hover:text-accent transition-colors">Strona glowna</a>
+                <a href="index.html" class="hover:text-accent transition-colors">Strona glówna</a>
                 <a href="lekcja1.html" class="hover:text-accent transition-colors">Lekcja 1</a>
-                <a href="lekcja2.html" class="text-accent font-medium">Lekcja 2</a>
+                <a href="lekcja2.html" class="text-purple font-medium">Lekcja 2</a>
             </div>
             <button id="menuBtn" class="md:hidden text-slate-400 hover:text-accent transition-colors">
                 <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
@@ -188,194 +97,196 @@
         </div>
         <div id="mobileMenu" class="hidden md:hidden mt-4 pb-4 border-t border-slate-700/50 pt-4">
             <div class="flex flex-col gap-3 text-sm text-slate-400">
-                <a href="index.html">Strona glowna</a>
-                <a href="lekcja1.html">Lekcja 1: Regresja Liniowa</a>
-                <a href="lekcja2.html" class="text-accent font-medium">Lekcja 2: Gradient Descent</a>
+                <a href="index.html">Strona glówna</a>
+                <a href="lekcja1.html">Lekcja 1: Regresja Wieloraka</a>
+                <a href="lekcja2.html" class="text-purple font-medium">Lekcja 2: Trendy i Sezonowość</a>
             </div>
         </div>
     </nav>
 
-    <!-- Layout -->
     <div class="flex pt-20">
-        <!-- Sidebar -->
         <aside class="hidden lg:block w-64 flex-shrink-0 sticky top-20 self-start h-[calc(100vh-5rem)] overflow-y-auto px-4 py-6">
             <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 px-4">Spis tresci</h3>
-            <a href="#sekcja1" class="sidebar-link active" data-section="sekcja1">1. Intuicja pochodnej</a>
-            <a href="#sekcja2" class="sidebar-link" data-section="sekcja2">2. Learning Rate</a>
+            <a href="#sekcja1" class="sidebar-link active" data-section="sekcja1">1. Trend, Sezon, Szum</a>
+            <a href="#sekcja2" class="sidebar-link" data-section="sekcja2">2. Estymacja i Średnia</a>
+            <a href="#sekcja3" class="sidebar-link" data-section="sekcja3">3. Algorytm ETS (Excel)</a>
             <a href="#quiz" class="sidebar-link" data-section="quiz">Sprawdz wiedze</a>
             <div class="mt-8 px-4">
-                <a href="lekcja1.html" class="text-xs text-slate-500 hover:text-accent transition-colors flex items-center gap-1">
-                    &#8592; Poprzednia: Regresja Liniowa
+                <a href="lekcja1.html" class="text-xs text-slate-500 hover:text-purple transition-colors flex items-center gap-1">
+                    &#8592; Poprzednia: Regresja Wieloraka
                 </a>
             </div>
         </aside>
 
-        <!-- Main content -->
         <main class="flex-1 max-w-4xl mx-auto px-6 pb-20">
-            <!-- Lesson header -->
             <div class="mb-10 fade-up">
                 <div class="flex items-center gap-3 mb-4">
                     <span class="text-purple font-mono text-sm">Lekcja 02</span>
                     <span class="w-8 h-px bg-purple/30"></span>
                 </div>
                 <h1 class="text-4xl md:text-5xl font-extrabold mb-4">
-                    <span class="bg-gradient-to-r from-purple to-accent bg-clip-text text-transparent">Gradient Descent</span>
+                    <span class="bg-gradient-to-r from-purple to-accent bg-clip-text text-transparent">Trendy i Sezonowość</span>
                 </h1>
                 <p class="text-slate-400 text-lg leading-relaxed max-w-2xl">
-                    Jak maszyna "uczy sie"? Dowiedz sie, czym jest gradient, jak dziala pochodna
-                    i dlaczego wielkosc kroku (learning rate) decyduje o sukcesie lub porazce treningu.
+                    Czas to jeden z najczęstszych wymiarów w danych. Dowiedz się, z czego składa się szerg czasowy 
+                    i na czym polega magiczne "wygładzanie wykładnicze", znane jako funkcja `Reglinx.ETS`.
                 </p>
             </div>
 
-            <!-- ============ SEKCJA 1: Intuicja pochodnej ============ -->
+            <!-- ============ SEKCJA 1 ============ -->
             <section id="sekcja1" class="mb-6 fade-up">
                 <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
-                    <span class="text-accent font-mono text-lg">01</span>
-                    Intuicja pochodnej i kierunek spadku
+                    <span class="text-purple font-mono text-lg">01</span>
+                    Trend, Sezonowość i Szum
                 </h2>
 
-                <!-- Theory -->
                 <div class="theory-block mb-6">
-                    <h3 class="text-lg font-semibold text-accent mb-4">Teoria</h3>
+                    <h3 class="text-lg font-semibold text-purple mb-4">Kluczowe Składowe</h3>
                     <p class="text-slate-300 leading-relaxed mb-4">
-                        Majac funkcje kosztu $J(w)$, chcemy znalezc takie $w$, dla ktorego $J$ jest <strong>minimalne</strong>.
-                        Gradient descent robi to iteracyjnie, przesuwajac $w$ w kierunku <strong>najszybszego spadku</strong> funkcji.
+                        W danych zbieranych na osi czasu zjawiska nie są przypadkowe. Każdy klasyczny 
+                        <strong>szereg czasowy</strong> składa się w dużej mierze z trzech składników:
                     </p>
-                    <p class="text-slate-300 leading-relaxed mb-4">
-                        Pochodna $\frac{dJ}{dw}$ mowi nam o <strong>nachyleniu</strong> funkcji w danym punkcie:
-                    </p>
-                    <ul class="text-slate-400 space-y-2 ml-4 mb-4">
-                        <li>Jesli $\frac{dJ}{dw} > 0$ (nachylenie w gore), to $w$ nalezy <strong>zmniejszyc</strong>,</li>
-                        <li>Jesli $\frac{dJ}{dw} < 0$ (nachylenie w dol), to $w$ nalezy <strong>zwiekszyc</strong>,</li>
-                        <li>Jesli $\frac{dJ}{dw} = 0$, jestesmy w <strong>minimum</strong> (lub maximum/punkcie siodlowym).</li>
+                    <ul class="space-y-4 ml-4 mb-4">
+                        <li class="flex items-start gap-3">
+                            <span class="text-accent font-bold mt-1">1.</span>
+                            <div>
+                                <strong class="text-slate-200">Trend</strong> – długoterminowy kierunek zmian (nieustanny wzrost lub spadek).
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-accent font-bold mt-1">2.</span>
+                            <div>
+                                <strong class="text-slate-200">Sezonowość</strong> – cykliczne, <strong>powtarzające się</strong> wzorce. 
+                                Np. rośnie w lecie, spada w zimie. Typowe cechy: stała długość cyklu, powtarzaność, 
+                                możliwość oddzielenia jej od trendu.
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-accent font-bold mt-1">3.</span>
+                            <div>
+                                <strong class="text-slate-200">Szum (Noise)</strong> – losowe wahania. Czysty przypadek wynikający 
+                                ze specyfiki świata (klienci z różnych powodów kupują dzień później niż zwykle).
+                            </div>
+                        </li>
                     </ul>
-                    <p class="text-slate-300 leading-relaxed mb-4">
-                        Regula aktualizacji to:
-                    </p>
-                    <div class="text-center text-xl my-6">
-                        $$w := w - \alpha \cdot \frac{\partial J}{\partial w}$$
-                    </div>
-                    <p class="text-slate-300 leading-relaxed">
-                        Znak minus powoduje, ze zawsze idziemy "pod gore" czyli w kierunku, ktory zmniejsza koszt.
-                    </p>
                 </div>
 
-                <!-- Po ludzku -->
                 <div class="human-box">
-                    <p class="text-sm font-semibold text-purple mb-2">&#128161; Po ludzku:</p>
+                    <p class="text-sm font-semibold text-accent mb-2">&#128161; Po ludzku:</p>
                     <p class="text-slate-300 leading-relaxed">
-                        Wyobraz sobie, ze stoisz na gorze we mgle i chcesz zejsc do doliny.
-                        Nie widzisz calej gory, ale <strong>czujesz nachylenie pod stopami</strong>.
-                        Pochodna to wlasnie to "nachylenie". Mowi Ci, w ktora strone jest "w dol".
-                        Gradient descent to strategia: <strong>zawsze stawiaj krok w kierunku, w ktorym teren opada najszybciej</strong>.
+                        Pomyśl o sprzedaży lodów: <br>
+                        <strong>Trend:</strong> Globalne ocieplenie sprawia, że co rok sprzedajemy trochę więcej lodów niż rok temu.<br>
+                        <strong>Sezonowość:</strong> Co roku latem sprzedaż wystrzeliwuje, a zimą szoruje po dnie.<br>
+                        <strong>Szum:</strong> Paskudna burza w środku udanego lata (sprzedaż spada tylko w ten jeden, losowy dzień).
                     </p>
                 </div>
 
-                <!-- Interactive: Gradient visualization -->
                 <div class="interactive-box mt-6">
-                    <h3 class="text-lg font-semibold text-purple mb-4">&#127912; Interakcja: Gradient na funkcji kosztu</h3>
+                    <h3 class="text-lg font-semibold text-accent mb-4">&#127912; Interakcja: Skomponuj swój wykres</h3>
                     <p class="text-sm text-slate-400 mb-4">
-                        Kliknij w dowolne miejsce na wykresie, aby umiescic punkt. Zobaczysz wektor nachylenia (gradient)
-                        wskazujacy kierunek, w ktorym funkcja rosnie. Algorytm idzie w <strong>przeciwnym</strong> kierunku.
+                        Użyj suwaków poniżej, aby na żywo kontrolować siłę składowych. Zobacz, jak suma prostych zjawisk daje 
+                        skomplikowany kształt wykresu giełdy/sprzedaży!
                     </p>
-                    <canvas id="gradientCanvas" width="700" height="360" class="w-full bg-[#0c1222] cursor-crosshair mb-3"></canvas>
-                    <p class="text-center text-sm text-slate-500">
-                        Punkt: $w = $ <span class="text-accent font-mono" id="gradW">3.00</span>,
-                        $J(w) = $ <span class="text-accent font-mono" id="gradJ">0.00</span>,
-                        nachylenie $= $ <span class="text-purple font-mono" id="gradSlope">0.00</span>
-                    </p>
+                    
+                    <div class="mb-4 bg-[#0c1222] p-2 rounded-xl">
+                        <canvas id="tsCanvas" height="150" class="w-full"></canvas>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="text-sm text-slate-400 flex justify-between mb-2">
+                                <span>Trend ($x$)</span>
+                                <span class="text-purple font-mono" id="valTrend">0.5</span>
+                            </label>
+                            <input type="range" id="tsTrend" min="-2" max="2" step="0.1" value="0.5" oninput="drawTS()">
+                        </div>
+                        <div>
+                            <label class="text-sm text-slate-400 flex justify-between mb-2">
+                                <span>Sezon (sinus)</span>
+                                <span class="text-accent font-mono" id="valSeason">2.0</span>
+                            </label>
+                            <input type="range" id="tsSeason" min="0" max="8" step="0.1" value="2.0" oninput="drawTS()">
+                        </div>
+                        <div>
+                            <label class="text-sm text-slate-400 flex justify-between mb-2">
+                                <span>Szum (losowość)</span>
+                                <span class="text-slate-200 font-mono" id="valNoise">1.0</span>
+                            </label>
+                            <input type="range" id="tsNoise" min="0" max="5" step="0.1" value="1.0" oninput="drawTS()">
+                        </div>
+                    </div>
                 </div>
             </section>
 
             <div class="section-divider"></div>
 
-            <!-- ============ SEKCJA 2: Learning Rate ============ -->
+            <!-- ============ SEKCJA 2 ============ -->
             <section id="sekcja2" class="mb-6 fade-up">
                 <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
-                    <span class="text-accent font-mono text-lg">02</span>
-                    Learning Rate i jego wplyw na zbieznosc
+                    <span class="text-purple font-mono text-lg">02</span>
+                    Estymowanie Zjawisk Sezonowych
                 </h2>
 
-                <!-- Theory -->
                 <div class="theory-block mb-6">
-                    <h3 class="text-lg font-semibold text-accent mb-4">Teoria</h3>
+                    <h3 class="text-lg font-semibold text-purple mb-4">Dekompozycja</h3>
                     <p class="text-slate-300 leading-relaxed mb-4">
-                        Parametr $\alpha$ (learning rate, wspolczynnik uczenia) kontroluje
-                        <strong>wielkosc kroku</strong> w kazdej iteracji:
+                        Aby rzetelnie prognozować dane, musimy je najpierw "wyczyścić" z cykliczności. Dokonujemy tego używając np. 
+                        <strong>metody ruchomej średniej (Moving Average)</strong>. Średnia o określonym oknie "wygładza" 
+                        sezonowość ułatwiając zobaczenie "tła" (trendu).
                     </p>
-                    <div class="text-center text-xl my-6">
-                        $$w_{n+1} = w_n - \alpha \cdot \frac{dJ}{dw}\bigg|_{w=w_n}$$
-                    </div>
-                    <ul class="text-slate-400 space-y-3 ml-4 mb-4">
-                        <li>
-                            <strong class="text-slate-200">Za maly $\alpha$</strong> (np. 0.001):
-                            kroki sa bardzo male, algorytm zblizy sie do minimum,
-                            ale <strong>bardzo wolno</strong>. Moze potrzebowac tysiecy iteracji.
-                        </li>
-                        <li>
-                            <strong class="text-slate-200">Odpowiedni $\alpha$</strong> (np. 0.1):
-                            algorytm stabilnie i szybko zbiega do minimum.
-                        </li>
-                        <li>
-                            <strong class="text-slate-200">Za duzy $\alpha$</strong> (np. 2.0):
-                            kroki sa tak duze, ze punkt "przeskakuje" minimum i zaczyna
-                            <strong>skakac</strong> po funkcji (overshooting), a nawet moze sie rozjechac do nieskonczonosci!
-                        </li>
-                    </ul>
+                    <ol class="list-decimal text-slate-400 space-y-2 ml-5 mb-4 marker:text-purple">
+                        <li>Obliczamy średnią z okna czasowego (rozdzielenie trendu)</li>
+                        <li>Obliczamy wektory sezonowości (średnia dla lutego ze wszystkich lat w zbiorze itd)</li>
+                        <li>Usuwamy sezonowość żeby wyliczyć idealny trend</li>
+                        <li>W prognozie: dodajemy wyestymowany trend i wskaźnik dla np. przewidywanego kolejnego marca.</li>
+                    </ol>
                 </div>
 
-                <!-- Po ludzku -->
-                <div class="human-box">
-                    <p class="text-sm font-semibold text-purple mb-2">&#128161; Po ludzku:</p>
-                    <p class="text-slate-300 leading-relaxed">
-                        Learning rate to <strong>wielkosc Twoich butow</strong> podczas schodzenia z gory.
-                        Male buty (maly LR) = drobne kroczki, dojdziesz, ale to zajmie wiecznosc.
-                        Normalne buty = idziesz pewnie i szybko do doliny.
-                        Gigantyczne buty (za duzy LR) = skaczesz tak daleko, ze przeskakujesz doline
-                        i laduje po drugiej stronie gory, a potem znow przeskakujesz w druga strone!
-                    </p>
-                </div>
-
-                <!-- Interactive: LR Simulation -->
                 <div class="interactive-box mt-6">
-                    <h3 class="text-lg font-semibold text-purple mb-4">&#128640; Symulacja: Learning Rate w akcji</h3>
+                    <h3 class="text-lg font-semibold text-accent mb-4">&#128200; Średnia Ruchoma (MA) w Akcji</h3>
                     <p class="text-sm text-slate-400 mb-4">
-                        Ustaw learning rate suwakiem i nacisnij "Start", aby zobaczyc, jak punkt
-                        schodzi (lub skacze!) po funkcji kosztu. Sprobuj roznych wartosci!
+                        Poniżej widzisz wykres ze sporą, roczną sezonowością (punkty niebieskie) i mnóstwem szumu. 
+                        Zmień <strong>okno (k)</strong> ruchomej średniej (pomarańczowa linia) aby zaobserwować izolację trendu.
                     </p>
-                    <canvas id="lrCanvas" width="700" height="360" class="w-full bg-[#0c1222] mb-4"></canvas>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-4">
-                        <div>
-                            <label class="text-sm text-slate-400 flex justify-between mb-2">
-                                <span>Learning Rate $\alpha$</span>
-                                <span class="text-accent font-mono" id="lrValue">0.10</span>
-                            </label>
-                            <input type="range" id="lrSlider" min="0.01" max="1.5" step="0.01" value="0.10">
-                        </div>
-                        <div>
-                            <label class="text-sm text-slate-400 flex justify-between mb-2">
-                                <span>Punkt startowy $w_0$</span>
-                                <span class="text-accent font-mono" id="w0Value">4.00</span>
-                            </label>
-                            <input type="range" id="w0Slider" min="-4" max="6" step="0.1" value="4">
-                        </div>
+                    
+                    <div class="mb-4 bg-[#0c1222] p-2 rounded-xl">
+                        <canvas id="maCanvas" height="150" class="w-full"></canvas>
                     </div>
 
-                    <div class="flex items-center gap-4 justify-center mb-3">
-                        <button class="sim-btn" id="startBtn" onclick="startSimulation()">&#9654; Start</button>
-                        <button class="sim-btn-outline" id="resetBtn" onclick="resetSimulation()">&#8634; Reset</button>
+                    <div class="mb-4">
+                        <label class="text-sm text-slate-400 flex justify-between mb-2">
+                            <span>Okres średniej $k$ (Miesiące)</span>
+                            <span class="text-orange-400 font-mono font-bold" id="valMA">k = 1</span>
+                        </label>
+                        <input type="range" id="sliderMA" min="1" max="24" step="1" value="1" oninput="drawMA()">
                     </div>
+                </div>
+            </section>
 
-                    <div class="text-center text-sm text-slate-500">
-                        Iteracja: <span class="text-accent font-mono" id="iterDisplay">0</span> |
-                        $w = $ <span class="text-accent font-mono" id="curWDisplay">4.00</span> |
-                        $J(w) = $ <span class="text-purple font-mono" id="curJDisplay">0.00</span>
-                    </div>
+            <div class="section-divider"></div>
 
-                    <!-- History log -->
-                    <div id="historyLog" class="mt-4 max-h-32 overflow-y-auto text-xs font-mono text-slate-500 bg-deep/50 rounded-lg p-3 hidden">
-                    </div>
+            <!-- ============ SEKCJA 3 ============ -->
+            <section id="sekcja3" class="mb-6 fade-up">
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+                    <span class="text-purple font-mono text-lg">03</span>
+                    Funkcja Excel Reglinx.ETS
+                </h2>
+
+                <div class="theory-block mb-6">
+                    <h3 class="text-lg font-semibold text-purple mb-4">Moc Wygładzania Wykładniczego (ETS)</h3>
+                    <p class="text-slate-300 leading-relaxed mb-4">
+                        W biznesie, w środowisku Excel, używamy potężnych funkcji wbudowanych w program.<br>
+                        Reglinx klasyfikuje dopasowanie liniowej prostej, jednak brakuje w niej adaptacji. Do ratowania sytuacji przychodzi wbudowana 
+                        unkcja <strong class="text-accent">Reglinx.ETS</strong>. 
+                    </p>
+                    <p class="text-slate-300 leading-relaxed mb-4">
+                        Używa powszechnego w Data Science algorytmu <strong>wygładzania wykładniczego (Exponential Smoothing - ETS)</strong>.
+                    </p>
+                    <ul class="text-slate-400 space-y-2 ml-4">
+                        <li>Daje coraz wagę nowszym obrerwacjom w czasie (stare obserwacje mają na nią mały wpływ).</li>
+                        <li><strong>Najlepiej nadaje się do nieliniowych modeli danych z wyraźnym wzorcem sezonowym</strong> (zorganizowanym wedle stałego kroku - godziny, dniami, lata).</li>
+                        <li>Automatycznie "radzi" sobie z cyklicznością podczas predykcji przyszłych komórek.</li>
+                    </ul>
                 </div>
             </section>
 
@@ -384,508 +295,222 @@
             <!-- ============ QUIZ ============ -->
             <section id="quiz" class="fade-up">
                 <h2 class="text-2xl font-bold mb-2 flex items-center gap-3">
-                    &#127891; Sprawdz swoja wiedze
+                    &#127891; Sprawdz swoja wiedze z prezentacji
                 </h2>
-                <p class="text-slate-400 mb-8">Odpowiedz na pytania, aby sprawdzic, czy dobrze rozumiesz Gradient Descent.</p>
+                <p class="text-slate-400 mb-8">Pytania pomagające ułożyć kluczowe informacje na temat ETS i Trendów.</p>
 
-                <!-- Q1 -->
                 <div class="mb-8" id="q1-block">
                     <p class="font-semibold text-slate-200 mb-3">
-                        1. Jesli pochodna $\frac{dJ}{dw}$ jest dodatnia, to w jaki sposob algorytm zmieni $w$?
+                        1. Jaka jest charakterystyczna własność sezonowości odróżniająca ją od trendu?
                     </p>
                     <div class="space-y-2">
                         <div class="quiz-option" onclick="checkAnswer('q1','A',this)" data-q="q1">
-                            <span class="text-accent font-mono mr-2">A.</span> Zwiekszy $w$
+                            <span class="text-purple font-mono mr-2">A.</span> Skupia się na kilkunastu latach nieustannego wzrostu.
                         </div>
                         <div class="quiz-option" onclick="checkAnswer('q1','B',this)" data-q="q1">
-                            <span class="text-accent font-mono mr-2">B.</span> Zmniejszy $w$
+                            <span class="text-purple font-mono mr-2">B.</span> Występuje to tylko zimą (minusowa temperatura doprowadza do tego).
                         </div>
                         <div class="quiz-option" onclick="checkAnswer('q1','C',this)" data-q="q1">
-                            <span class="text-accent font-mono mr-2">C.</span> Nie zmieni $w$
-                        </div>
-                        <div class="quiz-option" onclick="checkAnswer('q1','D',this)" data-q="q1">
-                            <span class="text-accent font-mono mr-2">D.</span> Ustawi $w$ na 0
+                            <span class="text-purple font-mono mr-2">C.</span> Posiada stałą, powtarzającą się długość cyklu, którą można odizolować.
                         </div>
                     </div>
                     <div id="q1-feedback" class="mt-3 text-sm hidden"></div>
                 </div>
 
-                <!-- Q2 -->
                 <div class="mb-8" id="q2-block">
                     <p class="font-semibold text-slate-200 mb-3">
-                        2. Co sie stanie, gdy learning rate $\alpha$ bedzie zbyt duzy?
+                        2. Do czego i dla jakich danych najlepiej wykorzystać Reglinx.ETS wg teorii z lekcji?
                     </p>
                     <div class="space-y-2">
                         <div class="quiz-option" onclick="checkAnswer('q2','A',this)" data-q="q2">
-                            <span class="text-accent font-mono mr-2">A.</span> Algorytm szybciej znajdzie minimum
+                            <span class="text-purple font-mono mr-2">A.</span> Do perfekcyjnie liniowych danych.
                         </div>
                         <div class="quiz-option" onclick="checkAnswer('q2','B',this)" data-q="q2">
-                            <span class="text-accent font-mono mr-2">B.</span> Algorytm bedzie dalej szukal minimum, ale wolniej
+                            <span class="text-purple font-mono mr-2">B.</span> Do danych nieliniowych organizowanych wedle stałego kroku ze wzorcem sezonowym.
                         </div>
                         <div class="quiz-option" onclick="checkAnswer('q2','C',this)" data-q="q2">
-                            <span class="text-accent font-mono mr-2">C.</span> Punkt moze "przeskakiwac" minimum i nigdy nie zbiec (overshooting)
-                        </div>
-                        <div class="quiz-option" onclick="checkAnswer('q2','D',this)" data-q="q2">
-                            <span class="text-accent font-mono mr-2">D.</span> Funkcja kosztu stanie sie ujemna
+                            <span class="text-purple font-mono mr-2">C.</span> Skrót ETS to Extract Transform System i służy do łączenia baz danych.
                         </div>
                     </div>
                     <div id="q2-feedback" class="mt-3 text-sm hidden"></div>
                 </div>
-
-                <!-- Q3 -->
-                <div class="mb-8" id="q3-block">
-                    <p class="font-semibold text-slate-200 mb-3">
-                        3. Dlaczego w regule aktualizacji $w := w - \alpha \frac{dJ}{dw}$ uzywa sie znaku minus?
-                    </p>
-                    <div class="space-y-2">
-                        <div class="quiz-option" onclick="checkAnswer('q3','A',this)" data-q="q3">
-                            <span class="text-accent font-mono mr-2">A.</span> Zeby przesuwac sie w kierunku wzrostu kosztu
-                        </div>
-                        <div class="quiz-option" onclick="checkAnswer('q3','B',this)" data-q="q3">
-                            <span class="text-accent font-mono mr-2">B.</span> Zeby przesuwac sie w kierunku spadku kosztu (przeciwnie do gradientu)
-                        </div>
-                        <div class="quiz-option" onclick="checkAnswer('q3','C',this)" data-q="q3">
-                            <span class="text-accent font-mono mr-2">C.</span> To konwencja bez znaczenia matematycznego
-                        </div>
-                        <div class="quiz-option" onclick="checkAnswer('q3','D',this)" data-q="q3">
-                            <span class="text-accent font-mono mr-2">D.</span> Zeby zapewnic, ze $w$ jest zawsze dodatnie
-                        </div>
-                    </div>
-                    <div id="q3-feedback" class="mt-3 text-sm hidden"></div>
-                </div>
             </section>
 
-            <!-- Navigation -->
             <div class="flex justify-between items-center mt-12 pt-8 border-t border-slate-800">
-                <a href="lekcja1.html" class="text-sm text-slate-400 hover:text-accent transition-colors">&#8592; Lekcja 1: Regresja Liniowa</a>
-                <a href="index.html" class="text-sm font-medium text-accent hover:text-purple transition-colors">Strona glowna &#10132;</a>
+                <a href="lekcja1.html" class="text-sm text-slate-400 hover:text-purple transition-colors">&#8592; Lekcja 1: Regresja Wieloraka</a>
+                <a href="index.html" class="text-sm font-medium text-purple hover:text-accent transition-colors">Strona glowna &#10132;</a>
             </div>
 
-            <!-- Footer -->
             <footer class="mt-12 pt-8 border-t border-slate-800 text-center text-sm text-slate-500">
-                <a href="https://github.com/recytator/" class="hover:text-accent transition-colors">Wykonanie: Milosz Prusinowski</a>
+                <a href="https://github.com/recytator/" class="hover:text-purple transition-colors">Wykonanie: Milosz Prusinowski</a>
             </footer>
         </main>
     </div>
 
     <script>
-    // ============================================================
-    // COST FUNCTION: J(w) = (w - 1)^2 + 0.5
-    // This gives a nice parabola with minimum at w = 1, J = 0.5
-    // ============================================================
-    function costFn(w) { return (w - 1) * (w - 1) + 0.5; }
-    function costDeriv(w) { return 2 * (w - 1); }
+    // ========= INTERAKCJA 1: Szereg =================
+    const tsCtx = document.getElementById('tsCanvas').getContext('2d');
+    let tsChart;
+    
+    function drawTS() {
+        const trend = parseFloat(document.getElementById('tsTrend').value);
+        const season = parseFloat(document.getElementById('tsSeason').value);
+        const noise = parseFloat(document.getElementById('tsNoise').value);
+        
+        document.getElementById('valTrend').textContent = trend.toFixed(1);
+        document.getElementById('valSeason').textContent = season.toFixed(1);
+        document.getElementById('valNoise').textContent = noise.toFixed(1);
+        
+        const labels = Array.from({length: 100}, (_, i) => i);
+        
+        // Y = trend * (x/10) + season * sin(x/5) + noise * (rand-0.5)
+        // Set deterministic pseudo-random for noise visually so it doesn't jump too wildly on every micro slider move
+        const data = labels.map(x => {
+            const t = trend * (x / 20); // trend
+            const s = season * Math.sin(x / 5); // sezon
+            const nzHash = Math.sin(x * 12.9898 + 78.233) * 43758.5453; // pseudo random
+            const nz = noise * (nzHash - Math.floor(nzHash) - 0.5) * 5;
+            return t + s + nz;
+        });
 
-    // ============================================================
-    // SECTION 1: Gradient Canvas (click to place point, see gradient)
-    // ============================================================
-    const gradCanvas = document.getElementById('gradientCanvas');
-    const gCtx = gradCanvas.getContext('2d');
-
-    // Mapping: w in [-5, 7], J in [0, 40]
-    const gWmin = -5, gWmax = 7, gJmin = 0, gJmax = 40;
-    let currentGradW = 3;
-
-    function gMapX(w) { return 50 + ((w - gWmin) / (gWmax - gWmin)) * (gradCanvas.width - 80); }
-    function gMapY(j) { return gradCanvas.height - 40 - ((j - gJmin) / (gJmax - gJmin)) * (gradCanvas.height - 70); }
-    function gUnmapX(px) { return gWmin + ((px - 50) / (gradCanvas.width - 80)) * (gWmax - gWmin); }
-
-    function resizeGradCanvas() {
-        const rect = gradCanvas.parentElement.getBoundingClientRect();
-        gradCanvas.width = rect.width;
-        gradCanvas.height = 360;
+        if (tsChart) tsChart.destroy();
+        tsChart = new Chart(tsCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Szereg Czasowy',
+                    data: data,
+                    borderColor: '#818cf8',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                animation: false, // W płynnym przesuwaniu slidera
+                scales: { 
+                    x: {display: false}, 
+                    y: {display: false, min: -15, max: 15} 
+                },
+                plugins: { legend: {display: false} }
+            }
+        });
     }
+    setTimeout(drawTS, 100);
 
-    function drawGradient() {
-        resizeGradCanvas();
-        gCtx.clearRect(0, 0, gradCanvas.width, gradCanvas.height);
+    // ========= INTERAKCJA 2: Ruchoma Średnia =================
+    const maCtx = document.getElementById('maCanvas').getContext('2d');
+    let maChart;
 
-        // Grid
-        gCtx.strokeStyle = 'rgba(56,189,248,0.06)';
-        gCtx.lineWidth = 1;
-        for (let w = -4; w <= 6; w++) {
-            gCtx.beginPath(); gCtx.moveTo(gMapX(w), 0); gCtx.lineTo(gMapX(w), gradCanvas.height); gCtx.stroke();
+    // Wygenerujmy ukryty "prawdziwy" dataset
+    function generateMAData() {
+        const d = [];
+        for(let i=0; i<80; i++) {
+            // Trend + sezon (12 ms) + Szum
+            let t = i * 0.1;
+            let s = 4 * Math.sin((i / 12) * Math.PI * 2);
+            let n = (Math.random() - 0.5) * 3;
+            d.push(t + s + n);
         }
-        for (let j = 0; j <= 40; j += 5) {
-            gCtx.beginPath(); gCtx.moveTo(0, gMapY(j)); gCtx.lineTo(gradCanvas.width, gMapY(j)); gCtx.stroke();
-        }
-
-        // Axis labels
-        gCtx.fillStyle = '#475569';
-        gCtx.font = '11px Inter';
-        gCtx.textAlign = 'center';
-        for (let w = -4; w <= 6; w += 2) gCtx.fillText(w, gMapX(w), gradCanvas.height - 10);
-        gCtx.textAlign = 'right';
-        for (let j = 0; j <= 40; j += 10) gCtx.fillText(j, 42, gMapY(j) + 4);
-
-        // Cost curve
-        gCtx.beginPath();
-        gCtx.strokeStyle = 'rgba(56,189,248,0.7)';
-        gCtx.lineWidth = 2.5;
-        for (let w = gWmin; w <= gWmax; w += 0.05) {
-            const x = gMapX(w), y = gMapY(costFn(w));
-            if (w === gWmin) gCtx.moveTo(x, y);
-            else gCtx.lineTo(x, y);
-        }
-        gCtx.stroke();
-
-        // Current point
-        const wNow = currentGradW;
-        const jNow = costFn(wNow);
-        const slope = costDeriv(wNow);
-        const px = gMapX(wNow), py = gMapY(jNow);
-
-        // Tangent line
-        const tangLen = 1.5;
-        gCtx.strokeStyle = 'rgba(239,68,68,0.5)';
-        gCtx.lineWidth = 1.5;
-        gCtx.setLineDash([6, 4]);
-        gCtx.beginPath();
-        gCtx.moveTo(gMapX(wNow - tangLen), gMapY(jNow - slope * tangLen));
-        gCtx.lineTo(gMapX(wNow + tangLen), gMapY(jNow + slope * tangLen));
-        gCtx.stroke();
-        gCtx.setLineDash([]);
-
-        // Gradient arrow (pointing in direction of steepest ascent)
-        const arrowScale = 15;
-        const grad = slope;
-        const arrowDx = arrowScale;
-        const arrowDy = -grad * arrowScale;
-        const arrowLen = Math.sqrt(arrowDx * arrowDx + arrowDy * arrowDy);
-        const normDx = (arrowDx / arrowLen) * 30;
-        const normDy = (arrowDy / arrowLen) * 30;
-
-        // Red arrow = gradient direction (ascent)
-        gCtx.strokeStyle = '#ef4444';
-        gCtx.fillStyle = '#ef4444';
-        gCtx.lineWidth = 2.5;
-        gCtx.beginPath();
-        gCtx.moveTo(px, py);
-        gCtx.lineTo(px + normDx, py + normDy);
-        gCtx.stroke();
-        // Arrowhead
-        const angle = Math.atan2(normDy, normDx);
-        gCtx.beginPath();
-        gCtx.moveTo(px + normDx, py + normDy);
-        gCtx.lineTo(px + normDx - 8*Math.cos(angle-0.4), py + normDy - 8*Math.sin(angle-0.4));
-        gCtx.lineTo(px + normDx - 8*Math.cos(angle+0.4), py + normDy - 8*Math.sin(angle+0.4));
-        gCtx.closePath();
-        gCtx.fill();
-
-        // Green arrow = negative gradient (descent)
-        gCtx.strokeStyle = '#22c55e';
-        gCtx.fillStyle = '#22c55e';
-        gCtx.lineWidth = 2.5;
-        gCtx.beginPath();
-        gCtx.moveTo(px, py);
-        gCtx.lineTo(px - normDx, py - normDy);
-        gCtx.stroke();
-        const angle2 = Math.atan2(-normDy, -normDx);
-        gCtx.beginPath();
-        gCtx.moveTo(px - normDx, py - normDy);
-        gCtx.lineTo(px - normDx - 8*Math.cos(angle2-0.4), py - normDy - 8*Math.sin(angle2-0.4));
-        gCtx.lineTo(px - normDx - 8*Math.cos(angle2+0.4), py - normDy - 8*Math.sin(angle2+0.4));
-        gCtx.closePath();
-        gCtx.fill();
-
-        // Labels
-        gCtx.font = '11px Inter';
-        gCtx.fillStyle = '#ef4444';
-        gCtx.textAlign = 'left';
-        gCtx.fillText('Gradient (wzrost)', px + normDx + 6, py + normDy);
-        gCtx.fillStyle = '#22c55e';
-        gCtx.fillText('Kierunek spadku', px - normDx - 80, py - normDy);
-
-        // Point dot
-        gCtx.beginPath();
-        gCtx.arc(px, py, 7, 0, Math.PI * 2);
-        gCtx.fillStyle = '#818cf8';
-        gCtx.shadowColor = '#818cf8';
-        gCtx.shadowBlur = 12;
-        gCtx.fill();
-        gCtx.shadowBlur = 0;
-        gCtx.strokeStyle = '#c7d2fe';
-        gCtx.lineWidth = 2;
-        gCtx.stroke();
-
-        // Info
-        document.getElementById('gradW').textContent = wNow.toFixed(2);
-        document.getElementById('gradJ').textContent = jNow.toFixed(2);
-        document.getElementById('gradSlope').textContent = slope.toFixed(2);
+        return d;
     }
+    const rawData = generateMAData();
 
-    gradCanvas.addEventListener('click', (e) => {
-        const rect = gradCanvas.getBoundingClientRect();
-        const mx = (e.clientX - rect.left) * (gradCanvas.width / rect.width);
-        currentGradW = gUnmapX(mx);
-        currentGradW = Math.max(gWmin + 0.5, Math.min(gWmax - 0.5, currentGradW));
-        drawGradient();
-    });
+    function drawMA() {
+        const k = parseInt(document.getElementById('sliderMA').value);
+        document.getElementById('valMA').textContent = `k = ${k}`;
 
-    // ============================================================
-    // SECTION 2: Learning Rate Simulation
-    // ============================================================
-    const lrCanvas = document.getElementById('lrCanvas');
-    const lCtx = lrCanvas.getContext('2d');
-    const lrSlider = document.getElementById('lrSlider');
-    const w0Slider = document.getElementById('w0Slider');
-
-    let simW = 4;
-    let simHistory = [];
-    let simRunning = false;
-    let simAnimId = null;
-    let simStep = 0;
-
-    function resizeLRCanvas() {
-        const rect = lrCanvas.parentElement.getBoundingClientRect();
-        lrCanvas.width = rect.width;
-        lrCanvas.height = 360;
-    }
-
-    function lMapX(w) { return 50 + ((w - gWmin) / (gWmax - gWmin)) * (lrCanvas.width - 80); }
-    function lMapY(j) { return lrCanvas.height - 40 - ((j - gJmin) / (gJmax - gJmin)) * (lrCanvas.height - 70); }
-
-    function drawLRScene() {
-        resizeLRCanvas();
-        lCtx.clearRect(0, 0, lrCanvas.width, lrCanvas.height);
-
-        // Grid
-        lCtx.strokeStyle = 'rgba(56,189,248,0.06)';
-        lCtx.lineWidth = 1;
-        for (let w = -4; w <= 6; w++) {
-            lCtx.beginPath(); lCtx.moveTo(lMapX(w), 0); lCtx.lineTo(lMapX(w), lrCanvas.height); lCtx.stroke();
-        }
-        for (let j = 0; j <= 40; j += 5) {
-            lCtx.beginPath(); lCtx.moveTo(0, lMapY(j)); lCtx.lineTo(lrCanvas.width, lMapY(j)); lCtx.stroke();
-        }
-
-        // Axis labels
-        lCtx.fillStyle = '#475569';
-        lCtx.font = '11px Inter';
-        lCtx.textAlign = 'center';
-        for (let w = -4; w <= 6; w += 2) lCtx.fillText(w, lMapX(w), lrCanvas.height - 10);
-        lCtx.textAlign = 'right';
-        for (let j = 0; j <= 40; j += 10) lCtx.fillText(j, 42, lMapY(j) + 4);
-
-        // Cost curve
-        lCtx.beginPath();
-        lCtx.strokeStyle = 'rgba(56,189,248,0.6)';
-        lCtx.lineWidth = 2.5;
-        for (let w = gWmin; w <= gWmax; w += 0.05) {
-            const x = lMapX(w), y = lMapY(costFn(w));
-            if (w === gWmin) lCtx.moveTo(x, y);
-            else lCtx.lineTo(x, y);
-        }
-        lCtx.stroke();
-
-        // Minimum marker
-        lCtx.beginPath();
-        lCtx.arc(lMapX(1), lMapY(costFn(1)), 5, 0, Math.PI * 2);
-        lCtx.fillStyle = 'rgba(34,197,94,0.5)';
-        lCtx.fill();
-        lCtx.strokeStyle = '#22c55e';
-        lCtx.lineWidth = 1.5;
-        lCtx.stroke();
-        lCtx.fillStyle = '#22c55e';
-        lCtx.font = '10px Inter';
-        lCtx.textAlign = 'center';
-        lCtx.fillText('min', lMapX(1), lMapY(costFn(1)) + 18);
-
-        // Path history
-        if (simHistory.length > 1) {
-            for (let i = 0; i < simHistory.length - 1; i++) {
-                const w1 = simHistory[i], w2 = simHistory[i + 1];
-                const x1 = lMapX(w1), y1 = lMapY(costFn(w1));
-                const x2 = lMapX(w2), y2 = lMapY(costFn(w2));
-
-                // Line between steps on the curve
-                lCtx.strokeStyle = `rgba(129,140,248,${0.3 + 0.5 * (i / simHistory.length)})`;
-                lCtx.lineWidth = 1.5;
-                lCtx.setLineDash([4, 3]);
-                lCtx.beginPath();
-                lCtx.moveTo(x1, y1);
-                lCtx.lineTo(x2, y2);
-                lCtx.stroke();
-                lCtx.setLineDash([]);
-
-                // Step dots
-                lCtx.beginPath();
-                lCtx.arc(x1, y1, 4, 0, Math.PI * 2);
-                lCtx.fillStyle = `rgba(129,140,248,${0.4 + 0.4 * (i / simHistory.length)})`;
-                lCtx.fill();
+        const maData = [];
+        for(let i=0; i < rawData.length; i++) {
+            if(i < k - 1) {
+                maData.push(null);
+            } else {
+                let sum = 0;
+                for(let j=0; j < k; j++) sum += rawData[i-j];
+                maData.push(sum / k);
             }
         }
 
-        // Current point
-        if (simHistory.length > 0) {
-            const curW = simHistory[simHistory.length - 1];
-            const curJ = costFn(curW);
-            const cx = lMapX(curW), cy = lMapY(curJ);
-
-            lCtx.beginPath();
-            lCtx.arc(cx, cy, 8, 0, Math.PI * 2);
-            lCtx.fillStyle = '#ef4444';
-            lCtx.shadowColor = '#ef4444';
-            lCtx.shadowBlur = 15;
-            lCtx.fill();
-            lCtx.shadowBlur = 0;
-            lCtx.strokeStyle = '#fca5a5';
-            lCtx.lineWidth = 2;
-            lCtx.stroke();
-
-            document.getElementById('curWDisplay').textContent = curW.toFixed(4);
-            document.getElementById('curJDisplay').textContent = curJ.toFixed(4);
-        }
-
-        document.getElementById('iterDisplay').textContent = Math.max(0, simHistory.length - 1);
-    }
-
-    function startSimulation() {
-        if (simRunning) return;
-        simRunning = true;
-        document.getElementById('startBtn').disabled = true;
-
-        const lr = parseFloat(lrSlider.value);
-        const maxIter = 50;
-        let currentW = simHistory.length > 0 ? simHistory[simHistory.length - 1] : parseFloat(w0Slider.value);
-
-        if (simHistory.length === 0) simHistory.push(currentW);
-
-        function step() {
-            if (simStep >= maxIter || !simRunning) {
-                simRunning = false;
-                document.getElementById('startBtn').disabled = false;
-                return;
+        if (maChart) maChart.destroy();
+        maChart = new Chart(maCtx, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: 80}, (_, i) => i),
+                datasets: [
+                    {
+                        label: 'Surowe (Szum+Sezon)',
+                        data: rawData,
+                        borderColor: 'rgba(56,189,248, 0.4)',
+                        borderWidth: 1.5,
+                        pointRadius: 2,
+                        pointBackgroundColor: '#38bdf8'
+                    },
+                    {
+                        label: `Średnia (k=${k})`,
+                        data: maData,
+                        borderColor: '#fb923c', // pomarańcz
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                animation: false,
+                scales: { 
+                    x: {display: false}, 
+                    y: {display: false, min: -6, max: 12} 
+                },
+                plugins: { legend: {display: true, labels: {color: '#94a3b8'}} }
             }
-
-            const grad = costDeriv(currentW);
-            currentW = currentW - lr * grad;
-
-            // Clamp to prevent going off screen
-            if (currentW < gWmin - 2 || currentW > gWmax + 2 || costFn(currentW) > 200) {
-                simHistory.push(currentW);
-                appendLog(simStep + 1, currentW, costFn(currentW), 'DIVERGENCE!');
-                drawLRScene();
-                simRunning = false;
-                document.getElementById('startBtn').disabled = false;
-                return;
-            }
-
-            simHistory.push(currentW);
-            simStep++;
-            appendLog(simStep, currentW, costFn(currentW));
-            drawLRScene();
-
-            // Stop if converged
-            if (Math.abs(grad) < 0.001) {
-                appendLog(simStep, currentW, costFn(currentW), 'CONVERGED');
-                simRunning = false;
-                document.getElementById('startBtn').disabled = false;
-                return;
-            }
-
-            simAnimId = setTimeout(step, 200);
-        }
-
-        step();
+        });
     }
+    setTimeout(drawMA, 100);
 
-    function resetSimulation() {
-        simRunning = false;
-        if (simAnimId) clearTimeout(simAnimId);
-        simStep = 0;
-        simHistory = [parseFloat(w0Slider.value)];
-        document.getElementById('startBtn').disabled = false;
-        document.getElementById('historyLog').innerHTML = '';
-        document.getElementById('historyLog').classList.add('hidden');
-        drawLRScene();
-    }
-
-    function appendLog(iter, w, j, note) {
-        const log = document.getElementById('historyLog');
-        log.classList.remove('hidden');
-        const noteStr = note ? ` [${note}]` : '';
-        const color = note === 'DIVERGENCE!' ? 'text-red-400' : note === 'CONVERGED' ? 'text-green-400' : 'text-slate-500';
-        log.innerHTML += `<div class="${color}">iter ${iter}: w = ${w.toFixed(6)}, J(w) = ${j.toFixed(6)}${noteStr}</div>`;
-        log.scrollTop = log.scrollHeight;
-    }
-
-    lrSlider.addEventListener('input', () => {
-        document.getElementById('lrValue').textContent = parseFloat(lrSlider.value).toFixed(2);
-    });
-    w0Slider.addEventListener('input', () => {
-        document.getElementById('w0Value').textContent = parseFloat(w0Slider.value).toFixed(2);
-        resetSimulation();
-    });
-
-    // ============================================================
-    // QUIZ
-    // ============================================================
-    const answers = { q1: 'B', q2: 'C', q3: 'B' };
-    const explanations = {
-        q1: 'Regula: $w := w - \\alpha \\frac{dJ}{dw}$. Jesli pochodna jest dodatnia, odejmujemy wartosc dodatnia, wiec $w$ maleje.',
-        q2: 'Zbyt duzy learning rate powoduje, ze punkt przeskakuje minimum (overshooting) i oscyluje, zamiast zbiegac.',
-        q3: 'Gradient wskazuje kierunek najszybszego wzrostu. Minus powoduje ruch w kierunku przeciwnym, czyli w strone spadku kosztu.'
-    };
-
+    // ========= QUIZ =========
+    const answers = { q1: 'C', q2: 'B' };
     function checkAnswer(qId, selected, el) {
         const allOptions = document.querySelectorAll(`[data-q="${qId}"]`);
-        if (el.classList.contains('disabled')) return;
+        if(el.classList.contains('disabled')) return;
 
         allOptions.forEach(opt => {
             opt.classList.add('disabled');
             const letter = opt.querySelector('.font-mono').textContent.replace('.','').trim();
-            if (letter === answers[qId]) opt.classList.add('correct');
-            else if (opt === el && selected !== answers[qId]) opt.classList.add('wrong');
+            if(letter === answers[qId]) opt.classList.add('correct');
+            else if(opt === el && selected !== answers[qId]) opt.classList.add('wrong');
         });
 
         const fb = document.getElementById(qId + '-feedback');
         fb.classList.remove('hidden');
-        if (selected === answers[qId]) {
-            fb.innerHTML = '<span class="text-green-400">&#10004; Poprawna odpowiedz!</span> ' + explanations[qId];
+        if(selected === answers[qId]) {
+            fb.innerHTML = '<span class="text-green-400">&#10004; Dobrze zapamiętane z wykładu!</span>';
         } else {
-            fb.innerHTML = '<span class="text-red-400">&#10008; Niepoprawnie.</span> ' + explanations[qId];
+            fb.innerHTML = '<span class="text-red-400">&#10008; Ta odpowiedź mija się z celem.</span>';
         }
-        if (window.MathJax) MathJax.typesetPromise([fb]);
     }
-
-    // ============================================================
-    // SCROLL SPY + FADE UP + MOBILE MENU
-    // ============================================================
+    
+    // Zwykły Scrollspy i FadeObserver
     const sections = document.querySelectorAll('section[id]');
     const sidebarLinks = document.querySelectorAll('.sidebar-link');
 
     window.addEventListener('scroll', () => {
         let current = '';
         sections.forEach(sec => {
-            const top = sec.offsetTop - 120;
-            if (window.scrollY >= top) current = sec.id;
+             const top = sec.offsetTop - 120;
+             if(window.scrollY >= top) current = sec.id;
         });
         sidebarLinks.forEach(link => {
-            link.classList.remove('active');
-            if (link.dataset.section === current) link.classList.add('active');
+             link.classList.remove('active');
+             if(link.dataset.section === current) link.classList.add('active');
         });
     });
 
     const fadeEls = document.querySelectorAll('.fade-up');
     const observer = new IntersectionObserver((entries) => {
-        entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+         entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
     }, { threshold: 0.1 });
     fadeEls.forEach(el => observer.observe(el));
-
-    document.getElementById('menuBtn').addEventListener('click', () => {
-        document.getElementById('mobileMenu').classList.toggle('hidden');
-    });
-
-    // Init
-    window.addEventListener('load', () => {
-        drawGradient();
-        resetSimulation();
-    });
-    window.addEventListener('resize', () => {
-        drawGradient();
-        drawLRScene();
-    });
     </script>
 </body>
 </html>

@@ -187,8 +187,8 @@
         <div id="mobileMenu" class="hidden md:hidden mt-4 pb-4 border-t border-slate-700/50 pt-4">
             <div class="flex flex-col gap-3 text-sm text-slate-400">
                 <a href="index.html" class="text-accent font-medium">Strona glowna</a>
-                <a href="lekcja1.html" class="hover:text-accent transition-colors">Lekcja 1: Regresja Liniowa</a>
-                <a href="lekcja2.html" class="hover:text-accent transition-colors">Lekcja 2: Gradient Descent</a>
+                <a href="lekcja1.html" class="hover:text-accent transition-colors">Lekcja 1: Regresja Wieloraka</a>
+                <a href="lekcja2.html" class="hover:text-accent transition-colors">Lekcja 2: Trendy i Sezonowość</a>
             </div>
         </div>
     </nav>
@@ -287,17 +287,17 @@
                         </div>
                         <div>
                             <h3 class="text-xl font-bold text-slate-100 mb-2 group-hover:text-accent transition-colors">
-                                Regresja Liniowa
+                                Regresja Wieloraka
                             </h3>
                             <p class="text-sm text-slate-400 mb-4 leading-relaxed">
-                                Hipoteza liniowa, parametry modelu, funkcja kosztu MSE i dopasowanie prostej do danych.
-                                Interaktywne suwaki pozwola Ci zobaczyc, jak model uczy sie na danych.
+                                Oszacowanie wpływu wielu zmiennych jednocześnie, problem współliniowości z użyciem miernika Pearsona
+                                oraz ocena modeli przy pomocy R kwadrat.
                             </p>
                             <div class="flex flex-wrap gap-2">
-                                <span class="tag">Hipoteza</span>
-                                <span class="tag">Parametry w, b</span>
-                                <span class="tag tag-purple">MSE</span>
-                                <span class="tag tag-purple">Koszt</span>
+                                <span class="tag">Macierz Korelacji</span>
+                                <span class="tag">Pearson</span>
+                                <span class="tag tag-purple">R Kwadrat</span>
+                                <span class="tag tag-purple">R Adjusted</span>
                             </div>
                         </div>
                     </div>
@@ -311,17 +311,17 @@
                         </div>
                         <div>
                             <h3 class="text-xl font-bold text-slate-100 mb-2 group-hover:text-purple transition-colors">
-                                Gradient Descent
+                                Trendy i Sezonowość
                             </h3>
                             <p class="text-sm text-slate-400 mb-4 leading-relaxed">
-                                Intuicja pochodnej, kierunek najszybszego spadku, learning rate i jego wplyw na zbieznosc.
-                                Symulacja overshooting w czasie rzeczywistym.
+                                Rozdzielenie trendu i sezonowości przy pomocy ruchomej średniej oraz prognozowanie danych nieliniowych
+                                z wykorzystaniem wygładzania wykładniczego ETS.
                             </p>
                             <div class="flex flex-wrap gap-2">
-                                <span class="tag">Pochodna</span>
-                                <span class="tag">Gradient</span>
-                                <span class="tag tag-purple">Learning Rate</span>
-                                <span class="tag tag-purple">Zbieznosc</span>
+                                <span class="tag">Trend</span>
+                                <span class="tag">Szum</span>
+                                <span class="tag tag-purple">Moving Average</span>
+                                <span class="tag tag-purple">Reglinx.ETS</span>
                             </div>
                         </div>
                     </div>
